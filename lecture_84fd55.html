@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محاضرة الأشعة التفاعلية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #202124;
+            --accent-color: #0056b3;
+            --trans-bg: #f8f9fa;
+            --trans-border: #0056b3;
+            --nav-bg: #f8f9fa;
+            --highlight: #e8f0fe;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Roboto', 'Cairo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+            min-height: 100vh;
+            overscroll-behavior-y: none;
+        }
+
+        .content-container {
+            padding: 20px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            direction: ltr;
+        }
+
+        .text-block {
+            margin-bottom: 25px;
+            border-bottom: 1px dashed #ddd;
+            padding-bottom: 15px;
+        }
+
+        .title-text {
+            font-weight: bold;
+            font-size: 1.6rem;
+            color: #000;
+            margin-bottom: 15px;
+            display: block;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 10px;
+            direction: ltr;
+        }
+
+        .sub-title {
+            font-weight: bold;
+            font-size: 1.4rem;
+            color: var(--accent-color);
+            margin-top: 20px;
+            margin-bottom: 10px;
+            display: block;
+            direction: ltr;
+        }
+
+        .english-paragraph {
+            line-height: 2.0;
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .interactive-word {
+            cursor: pointer;
+            border-bottom: 1px dotted #999;
+            transition: background 0.2s;
+        }
+        .interactive-word:hover {
+            background-color: #e3f2fd;
+            color: var(--accent-color);
+        }
+        .interactive-word:active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .toggle-trans-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 0;
+            direction: rtl;
+            width: 100%;
+            transition: color 0.2s;
+        }
+        
+        .toggle-trans-btn:hover {
+            color: var(--accent-color);
+        }
+
+        .inline-translation {
+            display: none;
+            background-color: var(--trans-bg);
+            color: #000;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+            border-right: 4px solid var(--trans-border);
+            font-family: 'Cairo', sans-serif;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            direction: rtl;
+            text-align: justify;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .lecture-image-container {
+            width: 100%;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .lecture-image {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #eee;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: var(--nav-bg);
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+            direction: rtl;
+        }
+
+        .nav-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .nav-btn:disabled {
+            background-color: #e0e0e0;
+            color: #999;
+            box-shadow: none;
+        }
+        .page-counter {
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            color: #555;
+            background: #e9ecef;
+            padding: 5px 15px;
+            border-radius: 15px;
+        }
+
+        .sheet-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000;
+            opacity: 0; visibility: hidden; transition: all 0.3s;
+            display: flex; align-items: flex-end;
+        }
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
+        .sheet-content {
+            background: white; width: 100%; padding: 25px;
+            border-top-left-radius: 25px; border-top-right-radius: 25px;
+            transform: translateY(100%); transition: transform 0.3s;
+            text-align: center;
+        }
+        .sheet-overlay.active .sheet-content { transform: translateY(0); }
+        
+        .selected-word-box {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px; border-radius: 12px;
+            margin-top: 10px;
+        }
+        .sw-container {
+            display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px;
+        }
+        .audio-btn {
+            background: none; border: none; cursor: pointer; font-size: 1.5rem; color: var(--accent-color);
+        }
+        .sw-english {
+            font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 1.4rem; color: var(--accent-color);
+        }
+        .sw-arabic {
+            font-family: 'Cairo', sans-serif; font-size: 1.3rem; color: #333; font-weight: bold; display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content-container" id="contentArea"></div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" id="nextBtn" onclick="changePage(1)">التالي &#8592;</button>
+        <div class="page-counter" id="pageIndicator">1</div>
+        <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">&#8594; السابق</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+        <div class="sheet-content">
+            <div style="font-family:'Cairo'; color:#666; margin-bottom:10px;">معنى الكلمة:</div>
+            <div id="selectedWordBox" class="selected-word-box">
+                <div class="sw-container">
+                    <span id="swEnglish" class="sw-english"></span>
+                    <button id="audioBtn" class="audio-btn" onclick="playAudio()">🔊</button>
+                </div>
+                <span id="swArabic" class="sw-arabic"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- القاموس الشامل (طبي وعام) ---
+        const dictionary = {
+            "the": "الـ", "of": "من/لـ", "in": "في", "and": "و", "is": "هو/يكون", "are": "هم/يكونون",
+            "to": "إلى/لـ", "a": "أداة تنكير", "an": "أداة تنكير", "with": "مع", "without": "بدون",
+            "or": "أو", "by": "بواسطة", "that": "الذي/ذلك", "which": "الذي/التي", "this": "هذا",
+            "these": "هؤلاء/هذه", "it": "هو/هي", "can": "يمكن", "be": "يكون", "from": "من",
+            "for": "لأجل", "on": "على", "so": "لذلك", "such": "مثل", "as": "كـ/مثل", "at": "عند/في",
+            "but": "لكن", "what": "ماذا/ما", "you": "أنت", "do": "تفعل", "because": "لأن", "some": "بعض",
+            "when": "عندما", "where": "أين/حيث", "all": "الكل", "any": "أي", "not": "لا/ليس",
+            "often": "غالباً", "although": "رغم أن", "hence": "وبالتالي", "even": "حتى", "about": "تقريباً/حول",
+            "its": "الخاص به", "their": "الخاص بهم", "has": "لديه/يملك", "have": "لدينا/يملكون", "does": "يفعل",
+            "let's": "دعنا", "say": "يقول/لنقل", "between": "بين", "now": "الآن", "just": "فقط",
+            "later": "لاحقاً", "only": "فقط", "if": "إذا/لو", "we": "نحن", "us": "نحن (ضمير)", "let": "دع",
+            "into": "إلى داخل", "how": "كيف", "no": "لا", "other": "آخر", "will": "سوف", "after": "بعد",
+            "before": "قبل", "while": "بينما", "during": "أثناء", "then": "ثم/بعد ذلك", "than": "من (للمقارنة)",
+            "very": "جداً/كلش", "more": "أكثر", "less": "أقل", "most": "معظم/الأكثر", "much": "بهواية/كثير",
+            
+            // مصطلحات طبية وعامة
+            "rao": "مائل أمامي أيمن (RAO)", "position": "وضعية", "sternum": "عظم القص",
+            "clinical": "سريري", "indications": "دواعي الاستعمال", "pathology": "أمراض (باثولوجي)",
+            "including": "يشمل/يتضمن", "fractures": "كسور", "inflammatory": "التهابي", "processes": "عمليات",
+            "technical": "تقني", "factors": "عوامل", "minimum": "أدنى/أقل شي", "sid": "مسافة المصدر للصورة (SID)",
+            "inches": "إنشات", "cm": "سم", "ir": "مستقبل الصورة (IR)", "size": "حجم",
+            "lengthwise": "بالطول", "crosswise": "بالعرض", "grid": "شبكة (كريد)",
+            "exposure": "تعرض (إشعاعي)", "breathing": "تنفس", "technique": "تقنية",
+            "analog": "تناظري", "digital": "رقمي", "systems": "أنظمة", "range": "نطاق/مدى",
+            "shielding": "تدريع/حماية", "shield": "احمي/درع", "radiosensitive": "حساس للإشعاع",
+            "tissues": "أنسجة", "outside": "خارج/برة", "region": "منطقة", "interest": "اهتمام",
+            "patient": "مريض", "erect": "واكف/منتصب", "preferred": "مفضل", "semiprone": "شبه منبطح",
+            "slight": "خفيف/قليل", "rotation": "دوران/فرة", "right": "يمين/أيمن", "arm": "ذراع/إيد",
+            "down": "جوة/لأسفل", "side": "جانب", "left": "يسار/أيسر", "up": "فوك/لأعلى",
+            "part": "جزء", "oblique": "مائل", "toward": "باتجاه", "align": "حاذي/رتب",
+            "long": "طويل", "axis": "محور", "cr": "شعاع مركزي (CR)", "midline": "خط الوسط",
+            "table": "طاولة/سدية", "upright": "واكف/عمودي", "bucky": "بوكي", "place": "خلي/حط",
+            "top": "أعلى/فوك", "jugular": "وداجي", "notch": "ثلمة", "perpendicular": "عمودي",
+            "directed": "موجه", "center": "مركز/نص", "midway": "بالنص/منتصف المسافة",
+            "xiphoid": "رهابي", "process": "ناتئ", "recommended": "موصى بيه",
+            "collimation": "تحديد الشعاع (كوليميشن)", "narrow": "ضيق", "field": "حقل",
+            "respiration": "تنفس", "orthostatic": "وقوفي", "performed": "يتسوى/يُجرى",
+            "cooperate": "يتعاون", "possible": "ممكن", "suspend": "وقف/اقطع", "expiration": "زفير",
+            "inspiration": "شهيق", "requires": "يحتاج/يتطلب", "time": "وقت", "low": "ناصي/قليل",
+            "ma": "ملي أمبير (mA)", "produce": "ينتج", "blurring": "تغويش/ضبابية", "overlying": "متراكب/الفوكاها",
+            "structures": "تراكيب", "note": "ملاحظة", "large": "كبير", "deep-chested": "صدره عميق",
+            "thorax": "صدر", "thin-chested": "صدره نحيف", "shift": "يزيح/يحرك", "vertebral": "فقري",
+            "column": "عمود", "superimposed": "متراكب/صاير فوك", "homogeneous": "متجانس",
+            "heart": "قلب", "shadow": "ظل", "amount": "كمية", "determined": "يتحدد/ينعرف",
+            "hand": "إيد", "spinous": "شوكي", "points": "نقاط", "viewed": "ينشاف/يُرى",
+            "tube": "أنبوب/تيوب", "adaptation": "تكييف/تعديل", "obtained": "نحصل عليه/ينجاب",
+            "lpo": "مائل خلفي أيسر (LPO)", "condition": "حالة", "permit": "يسمح", "trauma": "رضوض/إصابة",
+            "cannot": "ما يكدر/لا يمكن", "rotated": "مفتر/مدور", "angling": "تميل/تزوي", "across": "عبر/على طول",
+            "project": "يسقط", "lateral": "جانبي", "onto": "على", "fig": "شكل",
+            "inset": "مربع داخلي", "portable": "متنقل/متحرك", "placed": "محطوط/ينحط",
+            "stretcher": "سدية/نقالة", "tabletop": "سطح الطاولة", "prevent": "يمنع", "cutoff": "قطع/قص",
+            "evaluation": "تقييم", "criteria": "معايير", "anatomy": "تشريح", "demonstrated": "موضح/مبين",
+            "visualized": "ينشاف/مرئي", "correct": "صحيح/مضبوط", "alongside": "بجانب/بصف",
+            "superimposition": "تراكب", "vertebrae": "فقرات", "distortion": "تشويه", "area": "منطقة",
+            "optimal": "مثالي", "contrast": "تباين", "density": "كثافة", "brightness": "سطوع",
+            "outline": "مخطط/حدود", "through": "خلال", "ribs": "أضلاع", "lung": "رئة",
+            "bony": "عظمي", "margins": "حواف", "appear": "يظهر/يبين", "sharp": "حاد/واضح",
+            "markings": "علامات", "blurred": "مغوش", "motion": "حركة", "suspended": "موقوف/مقطوع",
+            "depressed": "منخسف/منضغط", "sternal": "قصي", "recumbent": "مستلقي", "standing": "واكف",
+            "seated": "كاعد", "shoulders": "أكتاف", "arms": "أذرع", "drawn": "مسحوب", "back": "للخلف/ظهر",
+            "lying": "نايم/مستلقي", "keeping": "حفظ/إبقاء", "ensure": "يضمن/يتأكد", "true": "حقيقي/مضبوط",
+            "reduce": "يقلل", "magnification": "تكبير", "caused": "مسبب", "increased": "زايد",
+            "object": "جسم", "distance": "مسافة", "oid": "OID", "unable": "غير قادر/ما يكدر",
+            "larger": "أكبر", "compensate": "يعوض", "pendulous": "متدلي", "breasts": "أثداء",
+            "female": "أنثى/نسائي", "held": "ممسوك/مزموم", "wide": "عريض", "bandage": "باندج/ضمادة",
+            "necessary": "ضروري", "horizontal": "أفقي", "supine": "مستلقي على ظهره", "warrants": "يستوجب/يستدعي",
+            "modification": "تعديل", "entire": "كامل", "minimal": "أقل شي", "overlap": "تداخل",
+            "following": "التالي", "humeri": "عظام العضد", "lower": "سفلي/جوة", "aspect": "جانب/منظر",
+            "obscured": "محجوب/مخفي", "indicated": "مؤشر/مبين", "pa": "خلفي أمامي (PA)",
+            "sternoclavicular": "قصي ترقوي", "joints": "مفاصل", "joint": "مفصل", "subluxation": "خلع جزئي",
+            "prone": "منبطح (على بطنه)", "pillow": "مخدة/وسادة", "turned": "مدار/مفتر", "beside": "بجانب/بصف",
+            "midsagittal": "سهمي وسطي", "allow": "اسمح/خلي", "distal": "بعيد (قاصي)", "vertebra": "فقرة",
+            "prominens": "بارزة", "level": "مستوى", "collimate": "حدد الشعاع", "uniform": "منتظم/متساوي",
+            "manubrium": "قبضة القص", "medial": "إنسي (داخلي)", "portion": "جزء", "clavicles": "ترقوة",
+            "equal": "متساوي", "both": "كلا/اثنينهم", "sides": "جانبين", "anterior": "أمامي",
+            "lao": "مائل أمامي أيسر (LAO)", "images": "صور", "separation": "انفصال", "visualizes": "يوضح/يراوي",
+            "downside": "الجانب السفلي (الناصي)", "closest": "أقرب", "spine": "عمود فقري",
+            "radiograph": "صورة شعاعية", "obliquity": "ميلان", "upside": "الجانب العلوي (الفوك)",
+            "front": "أمام/كبال", "opposite": "معاكس/مقابل", "behind": "خلف/ورا", "posterior": "خلفي",
+            "foreshortened": "مقصّر (بالمنظور)", "diaphragm": "حجاب حاجز", "bilateral": "ثنائي الجانب",
+            "examination": "فحص", "minimize": "يقلل لأدنى حد", "anteriorly": "للأمام", "remove": "يزيل/يوخر",
+            "scapulae": "ألواح الكتف", "fields": "حقول", "raise": "ارفع", "chin": "ذقن",
+            "upper": "علوي/فوك", "look": "باوع/انظر", "straight": "عدل/مباشرة", "ahead": "للأمام",
+            "iliac": "حرقفي", "crest": "عرف", "cut": "مقطوع", "off": "منفصل/إيقاف", "unilateral": "أحادي الجانب",
+            "study": "دراسة/فحص", "narrow": "ضيق", "chest": "صدر", "dimensions": "أبعاد",
+            "smaller": "أصغر", "evident": "واضح/مبين", "dense": "كثيف", "abdominal": "بطني",
+            "organs": "أعضاء", "injuries": "إصابات", "routine": "روتيني", "series": "سلسلة (صور)",
+            "rule": "يستبعد", "respiratory": "تنفسي", "dysfunctions": "اختلالات وظيفية", "pneumothorax": "استرواح الصدر (هواء بالصدر)",
+            "white": "أبيض", "arrows": "أسهم", "hemothorax": "تدمي الصدر (دم بالصدر)", "black": "أسود",
+            "accompany": "يرافق/يصاحب", "specific": "محدد", "cavity": "تجويف", "outer": "خارجي",
+            "bottom": "أسفل/كعب", "axillary": "إبطي", "affected": "مصاب/متأثر", "site": "موقع",
+            "elevated": "مرفوع/معلق", "extend": "مد/ابسط", "flex": "اثني/اطوي", "knee": "ركبة",
+            "help": "يساعد", "maintain": "يحافظ", "support": "اسند/ادعم", "blocks": "بلوكات/مساند",
+            "needed": "محتاج/مطلوب", "departmental": "خاص بالقسم", "routines": "روتينات", "well-collimated": "محدد زين (الشعاع)",
+            "self-superimposition": "تراكب ذاتي", "accurate": "دقيق/مضبوط"
+        };
+
+        const pages = [{"content": [{"type": "text", "text": "1.16 Signal Coding  \nTo explain this subject clearly and easy assimilation, suppose some of the  \nassumptions: considering an axial image of the brain using a 1.5 Tesla magnet. Also,  \nwe work with a homogeneous magnetic field, which covers the whole body from  \nhead to toe. (This is quite different in reality, where there is only a homogenous  \nsphere of 40 cm in diameter in the iso-centre (center of the MRI bore) of the magnet,  \nbut this assumption easy to the explanation and the idea explained). Just as important  \nas the strength of the main magnet is its precision. The straightness of the magnetic  \nlines within the center (or, as it is technically known, the iso-center) of the magnet  \nneeds to be near-perfect. This is known as homogeneity. Fluctuations  \n(inhomogeneities in the field strength) within the scan region should be less than  \nthree parts per million (3 ppm). When we put a patient in the magnet, all the protons,  \nfrom head to toe, align with B0. They spin at the Larmor frequency of 63.6 MHz  \n(Figure 28).", "trans": "", "isTitle": true, "isSubTitle": false}, {"type": "image", "src": "images/img_fb551125.jpg"}, {"type": "text", "text": "If we use a 90o excitation RF-pulse to flip the magnetization into the x-y plane, then  \nall the protons would react and return a signal. We would have no clue where the  \nsignal comes from: from head or toe.", "trans": "", "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "1.16.1 Slice Encoding Gradient  \nThe magnetic field gradient (e.g., Z-gradient) is temporarily applied (Z-gradient is  \nswitched on) at the same time as the RF pulse (see figure 29).", "trans": "", "isTitle": true, "isSubTitle": false}, {"type": "image", "src": "images/img_4cbec8c8.jpg"}, {"type": "text", "text": "This will generate an additional magnetic field in the Z-direction, which is  \nsuperimposed on Bo. The indication +Gz in Figure 29 means there is a slightly  \nstronger Bo field in the head as there is in the iso-center of the magnet. A stronger  \nBo field means a higher Larmor frequency. Along the entire the slope of the gradient  \nthere is a different Bo field and consequently the protons spin at slightly different  \nfrequencies. Therefore, the protons in the head will spin slightly faster than the ones  \nin the iso-center. The reverse goes for the protons in the feet. Figure 28 shows that  \nthe protons in the feet now spin at 63.5 MHz, the ones in the iso-center of the magnet  \nstill at 63.6 MHz and the ones in the head with 63.7 MHz  \nThis means we can \"pick out\" the section which we want to excite by choosing the  \nright frequency range of RF excitation pulse. The section which contains Larmor \nfrequencies which match the frequencies of the oscillating magnetic field will  \nrespond. An MRI signal will be generated only from that section of the patient. This  \nis called Slice-Encoding or Slice-Selection. Usually, the slice selection gradient is  \napplied in the z-axis-the head-foot direction in the scanner. But because a gradient", "trans": "", "isTitle": false, "isSubTitle": false}]}];
+        let currentIndex = 0;
+
+        function renderPage() {
+            const container = document.getElementById('contentArea');
+            const data = pages[currentIndex];
+            
+            document.getElementById('pageIndicator').innerText = `${currentIndex + 1} / ${pages.length}`;
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === pages.length - 1;
+
+            let html = '';
+            
+            data.content.forEach((item, idx) => {
+                if (item.type === 'image') {
+                    html += `
+                        <div class="lecture-image-container">
+                            <img src="${item.src}" alt="Lecture Figure" class="lecture-image">
+                        </div>
+                    `;
+                } else {
+                    let cssClass = "english-paragraph";
+                    if (item.isTitle) cssClass = "title-text";
+                    if (item.isSubTitle) cssClass = "sub-title";
+
+                    const lines = item.text.split('\n');
+                    let formattedBlock = '';
+                    
+                    lines.forEach(line => {
+                        const words = line.split(' ');
+                        let interactiveText = '';
+                        words.forEach(word => {
+                            const cleanWordForLookup = word.replace(/[.,()?!:;“”"°\[\]*\-0-9]/g, '').toLowerCase();
+                            
+                            if (cleanWordForLookup && /[a-z]/i.test(cleanWordForLookup)) {
+                                interactiveText += `<span class="interactive-word" onclick="showWordMeaning('${cleanWordForLookup}', '${word.replace(/'/g, "\\'")}')">${word}</span> `;
+                            } else {
+                                interactiveText += `${word} `; 
+                            }
+                        });
+                        formattedBlock += `<div>${interactiveText}</div>`;
+                    });
+
+                    let transFormatted = item.trans.replace(/\n/g, '<br>');
+
+                    html += `
+                        <div class="text-block">
+                            <div class="${cssClass}">
+                                ${formattedBlock}
+                            </div>
+                            <button class="toggle-trans-btn" onclick="toggleTranslation('trans-${idx}')">
+                                إظهار الترجمة &#11015;
+                            </button>
+                            <div id="trans-${idx}" class="inline-translation">
+                                ${transFormatted}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        let currentWordForAudio = "";
+
+        function showWordMeaning(cleanWord, originalWord) {
+            // البحث في القاموس، وإذا لم توجد الكلمة نضع "---"
+            const translation = dictionary[cleanWord] || "---"; 
+            
+            currentWordForAudio = originalWord.replace(/[.,()?!:;“”"°\[\]*|]/g, '');
+
+            const box = document.getElementById('selectedWordBox');
+            const enSpan = document.getElementById('swEnglish');
+            const arSpan = document.getElementById('swArabic');
+
+            enSpan.innerText = currentWordForAudio; 
+            arSpan.innerText = translation;
+
+            const overlay = document.getElementById('sheetOverlay');
+            overlay.classList.add('active');
+        }
+
+        function playAudio() {
+            if (currentWordForAudio) {
+                const utterance = new SpeechSynthesisUtterance(currentWordForAudio);
+                utterance.lang = 'en-US'; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function closeSheet(e) {
+            if (e.target.id === 'sheetOverlay') {
+                const overlay = document.getElementById('sheetOverlay');
+                overlay.classList.remove('active');
+            }
+        }
+
+        function changePage(dir) {
+            currentIndex += dir;
+            renderPage();
+        }
+
+        renderPage();
+
+    </script>
+</body>
+</html>
