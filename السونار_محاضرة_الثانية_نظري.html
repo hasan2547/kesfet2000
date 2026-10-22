@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محاضرة السونار محاضرة الثانية نظري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #202124;
+            --accent-color: #0056b3;
+            --trans-bg: #f8f9fa;
+            --trans-border: #0056b3;
+            --nav-bg: #f8f9fa;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Roboto', 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 90px; min-height: 100vh; }
+        
+        .content-container { padding: 20px 20px; max-width: 800px; margin: 0 auto; direction: ltr; }
+        .text-block { margin-bottom: 25px; border-bottom: 1px dashed #ddd; padding-bottom: 15px; }
+        .title-text { font-weight: bold; font-size: 1.6rem; color: #000; margin-bottom: 15px; display: block; border-bottom: 3px solid var(--accent-color); padding-bottom: 10px; direction: ltr; }
+        .sub-title { font-weight: bold; font-size: 1.4rem; color: var(--accent-color); margin-top: 20px; margin-bottom: 10px; display: block; direction: ltr; }
+        
+        .english-paragraph { line-height: 2.2; font-size: 1.25rem; color: #333; margin-bottom: 8px; text-align: left; }
+        
+        .interactive-word { cursor: pointer; border-bottom: 1px dotted #999; transition: background 0.2s; position: relative; display: inline-block;}
+        .interactive-word:hover { background-color: #e3f2fd; color: var(--accent-color); }
+        
+        .toggle-trans-btn { background: none; border: none; color: #666; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 0; direction: rtl; width: 100%; }
+        .toggle-trans-btn:hover { color: var(--accent-color); }
+        
+        .inline-translation { display: none; background-color: var(--trans-bg); color: #000; padding: 12px; border-radius: 8px; margin-top: 5px; border-right: 4px solid var(--trans-border); font-family: 'Cairo', sans-serif; font-size: 1.15rem; line-height: 1.6; direction: rtl; text-align: justify; }
+
+        .lecture-image-container { width: 100%; margin: 20px 0; text-align: center; }
+        .lecture-image { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; }
+
+        .print-btn-float { position: fixed; top: 15px; right: 15px; background: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 1rem; cursor: pointer; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s;}
+        .print-btn-float:active { transform: scale(0.95); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: var(--nav-bg); border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 1000; direction: rtl; }
+        .nav-btn { background: var(--accent-color); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; }
+        .nav-btn:disabled { background-color: #e0e0e0; color: #999; }
+        .page-counter { font-family: 'Cairo', sans-serif; font-weight: bold; color: #555; background: #e9ecef; padding: 5px 15px; border-radius: 15px; }
+
+        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; visibility: hidden; display: flex; align-items: flex-end; transition: all 0.3s;}
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
+        .sheet-content { background: white; width: 100%; padding: 25px; border-top-left-radius: 25px; border-top-right-radius: 25px; text-align: center; transform: translateY(100%); transition: transform 0.3s;}
+        .sheet-overlay.active .sheet-content { transform: translateY(0); }
+        .selected-word-box { background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .sw-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
+        .audio-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; }
+        .sw-english { font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 1.4rem; color: var(--accent-color); }
+        .sw-arabic { font-family: 'Cairo', sans-serif; font-size: 1.3rem; color: #333; font-weight: bold; display: block; }
+
+        .slide-page { display: none; }
+        .slide-page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        /* ================= إعدادات الطباعة الآمنة للصور والخطوط ================= */
+        @page { size: A4 portrait; margin: 10mm; }
+        @media print {
+            body, html { width: 100%; background: white; color: black; margin: 0; padding: 0; }
+            .bottom-nav, .sheet-overlay, .toggle-trans-btn, .print-btn-float { display: none !important; }
+            
+            .content-container { max-width: 100%; padding: 0; margin: 0; }
+            
+            /* إزالة إخفاء المحتوى الزائد، وترك الصفحة تأخذ راحتها لتفادي النقص */
+            .slide-page { 
+                display: block !important; 
+                opacity: 1 !important; 
+                visibility: visible !important; 
+                position: relative !important; 
+                page-break-after: always !important; 
+                page-break-inside: avoid !important;
+                width: 100% !important;
+                padding: 0 !important; 
+                margin: 0 !important; 
+                box-sizing: border-box; 
+            }
+            
+            .slide-content-wrapper {
+                transform-origin: top center;
+                width: 100%;
+            }
+            
+            .text-block { border-bottom: 1px dashed #ccc; margin-bottom: 8px !important; padding-bottom: 5px !important;}
+            .lecture-image-container { margin: 10px 0 !important; text-align: center; page-break-inside: avoid;}
+            .lecture-image { max-height: 300px !important; max-width: 100% !important; object-fit: contain; }
+            
+            .inline-translation { display: block !important; font-size: 11pt !important; line-height: 1.5 !important; border-top: 1px dashed #bbb; margin-top: 8px !important; padding-top: 5px !important; color: #444; direction: rtl;}
+            
+            .interactive-word { border: none !important; position: relative; display: inline-block; margin-top: 22px;}
+            .interactive-word[data-trans]::after {
+                content: attr(data-trans);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 8pt !important;
+                color: #cc0000 !important; 
+                font-family: 'Cairo', sans-serif;
+                white-space: nowrap;
+                font-weight: bold;
+                direction: rtl;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn-float" id="mainPrintBtn" onclick="printLecture()">
+        🖨️ حفظ كـ PDF
+    </button>
+
+    <div class="content-container" id="contentArea"></div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" id="nextBtn" onclick="changePage(1)">التالي &#8592;</button>
+        <div class="page-counter" id="pageIndicator">1</div>
+        <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">&#8594; السابق</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+        <div class="sheet-content">
+            <div style="font-family:'Cairo'; color:#666; margin-bottom:10px;">معنى الكلمة:</div>
+            <div id="selectedWordBox" class="selected-word-box">
+                <div class="sw-container">
+                    <span id="swEnglish" class="sw-english"></span>
+                    <button id="audioBtn" class="audio-btn" onclick="playAudio()">🔊</button>
+                </div>
+                <span id="swArabic" class="sw-arabic"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // قاموس احتياطي لضمان السرعة للحروف الشائعة
+        const fallbackDict = {
+            "the":"الـ", "of":"من", "in":"في", "and":"و", "is":"هو", "are":"هم", "to":"إلى", "a":"أداة", "an":"أداة", "with":"مع", "without":"بدون",
+            "on":"على", "at":"عند", "by":"بواسطة", "for":"لـ", "from":"من", "or":"أو", "we":"نحن", "have":"نملك", "be":"يكون", "not":"لا"
+        };
+        const dictionary = {};
+        const pages = [{"content": [{"type": "image", "src": "images/img_68d4c874.jpg"}]}, {"content": [{"type": "text", "text": "What is ultrasound?", "trans": "ما هو الموجات فوق الصوتية؟", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": " Ultrasound is the name given to high-frequency sound waves, over", "trans": " الموجات فوق الصوتية هو الاسم الذي يطلق على الموجات الصوتية عالية التردد", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "20000 cycles per second (20 kHz).", "trans": "20000 دورة في الثانية (20 كيلو هرتز).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": " These waves, inaudible to humans, can be transmitted in beams", "trans": " يمكن أن تنتقل هذه الموجات، غير المسموعة للإنسان، في حزم", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "and are used to scan the tissues of the body.", "trans": "وتستخدم لفحص أنسجة الجسم.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": " Different tissues alter the waves in different ways: some reflect", "trans": " الأنسجة المختلفة تغير الموجات بطرق مختلفة: بعضها يعكس", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "directly while others scatter the waves before they return to the", "trans": "مباشرة بينما ينثر الآخرون الأمواج قبل أن يعودوا إلى", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "transducer as echoes.", "trans": "محول كأصداء.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": " The reflected ultrasound pulses detected by the transducer need to", "trans": " تحتاج نبضات الموجات فوق الصوتية المنعكسة التي اكتشفها محول الطاقة إلى ذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "be amplified in the scanner.", "trans": "يتم تضخيمها في الماسح الضوئي.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": " The echoes that come from deep within the body are more", "trans": " الأصداء التي تأتي من أعماق الجسم تكون أكثر", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "attenuated than those from the more superficial parts, and therefore", "trans": "مخففة من تلك الموجودة في الأجزاء الأكثر سطحية، وبالتالي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "require more amplification.", "trans": "تتطلب المزيد من التضخيم.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "image", "src": "images/img_2beda8b3.jpg"}]}, {"content": [{"type": "image", "src": "images/img_dcfa3ba5.jpg"}]}, {"content": [{"type": "text", "text": "Ultrasound generators ;", "trans": "مولدات الموجات فوق الصوتية ;", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "The ultrasound waves are generated by a piezoelectric transducer which is", "trans": "يتم توليد الموجات فوق الصوتية بواسطة محول كهرضغطية وهو", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "capable of changing electrical signals into mechanical (ultrasound) waves.", "trans": "قادرة على تحويل الإشارات الكهربائية إلى موجات ميكانيكية (الموجات فوق الصوتية).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "The same transducer can also receive the reflected ultrasound and", "trans": "يمكن لنفس المحول أيضًا استقبال الموجات فوق الصوتية المنعكسة و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "change it back into electrical Signals. Transducers are both transmitters and", "trans": "تغييره مرة أخرى إلى الإشارات الكهربائية. محولات الطاقة هي أجهزة الإرسال و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "receivers of ultrasound", "trans": "أجهزة استقبال الموجات فوق الصوتية", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_d9bdda8b.jpg"}]}, {"content": [{"type": "text", "text": "Different modes of ultrasound", "trans": "أوضاع مختلفة للموجات فوق الصوتية", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "The various modes show the returning echoes in different ways:", "trans": "تُظهر الأوضاع المختلفة الأصداء العائدة بطرق مختلفة:", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "A-mode: With this type of ultrasound unit, the echoes are shown as peaks,", "trans": "الوضع A: مع هذا النوع من وحدات الموجات فوق الصوتية، تظهر الأصداء على شكل قمم،", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "and the distances between the various structures can be measured. This", "trans": "ويمكن قياس المسافات بين الهياكل المختلفة. هذا", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "pattern is not usually displayed but similar information is used to build the twodimensional B-mode image.", "trans": "لا يتم عادةً عرض النمط ولكن يتم استخدام معلومات مماثلة لإنشاء صورة الوضع B ثنائية الأبعاد.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_f02468b4.jpg"}]}, {"content": [{"type": "image", "src": "images/img_d87ca0e6.jpg"}]}, {"content": [{"type": "text", "text": "B-mode:", "trans": "الوضع ب:", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "This type of image shows all the tissue traversed by the ultrasound scan.", "trans": "يُظهر هذا النوع من الصور جميع الأنسجة التي تم اجتيازها بواسطة الفحص بالموجات فوق الصوتية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "The images are two-dimensional and are known as B-mode images or Bmode sections.", "trans": "وتكون الصور ثنائية الأبعاد وتعرف باسم صور الوضع B أو مقاطع Bmode.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "If multiple B-mode images are watched in rapid sequence, they become", "trans": "إذا تمت مشاهدة العديد من صور الوضع B بتسلسل سريع، فإنها تصبح", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "real-time images.", "trans": "الصور في الوقت الحقيقي.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_8489c065.jpg"}]}, {"content": [{"type": "text", "text": " Real-time: This mode displays motion by showing the images of the part of the", "trans": " الوقت الحقيقي: يعرض هذا الوضع الحركة من خلال عرض صور جزء من", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "body under the transducer as it is being scanned.", "trans": "الجسم تحت محول الطاقة أثناء فحصه.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": " The images change with each movement of the transducer or if any part of the", "trans": " تتغير الصور مع كل حركة لمحول الطاقة أو أي جزء منه", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "body is moving (for example, a moving fetus or pulsating artery).", "trans": "- تحرك الجسم (على سبيل المثال، الجنين المتحرك أو الشريان النابض).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": " The movement is shown on the monitor in real time, as it occurs. In most real-time", "trans": " تظهر الحركة على الشاشة في الوقت الحقيقي فور حدوثها. في معظم الوقت الحقيقي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "units, it is possible to \"freeze\" the displayed image, holding it stationary so that it", "trans": "الوحدات، فمن الممكن 'تجميد' الصورة المعروضة، وإبقائها ثابتة بحيث تكون كذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "can be studied and measured if necessary.", "trans": "يمكن دراستها وقياسها إذا لزم الأمر.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "M-mode: is another way of displaying motion. The result is a wavy line. This", "trans": "الوضع M: طريقة أخرى لعرض الحركة. والنتيجة هي خط متموج. هذا", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "mode is most commonly used for cardiac ultrasound", "trans": "يُستخدم الوضع بشكل شائع في الموجات فوق الصوتية للقلب", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_f11b1ffc.jpg"}]}, {"content": [{"type": "text", "text": "Ultrasound terms/ Glossary •", "trans": "مصطلحات الموجات فوق الصوتية/ المسرد •", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "Acoustic enhancement:", "trans": "التعزيز الصوتي:", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "The increased echogenicity (echo brightness) of tissues that lie behind a", "trans": "زيادة صدى الصوت (سطوع الصدى) للأنسجة التي تقع خلف أ", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "structure that causes little or no attenuation of the ultrasound waves, such as", "trans": "هيكل يسبب توهينًا ضئيلًا أو معدومًا للموجات فوق الصوتية، مثل", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "a fluid-filled cyst.", "trans": "كيس مملوء بالسوائل.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "The opposite to acoustic enhancement is acoustic shadowing", "trans": "عكس التحسين الصوتي هو التظليل الصوتي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_7c0249e8.jpg"}]}, {"content": [{"type": "text", "text": " Acoustic shadowing: The decreased echogenicity of tissues that lie", "trans": " التظليل الصوتي: انخفاض صدى الأنسجة الموجودة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "behind a structure that causes marked attenuation of the", "trans": "خلف هيكل يسبب توهينًا ملحوظًا لل", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "ultrasound waves. The opposite to acoustic shadowing is acoustic", "trans": "الموجات فوق الصوتية. عكس التظليل الصوتي هو صوتي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "enhancement.", "trans": "تعزيز.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_8a8ea962.jpg"}]}, {"content": [{"type": "text", "text": " Acoustic window:", "trans": " النافذة الصوتية:", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": " A tissue or structure that offers little obstruction to the ultrasound", "trans": " نسيج أو هيكل لا يشكل عائقًا كبيرًا أمام الموجات فوق الصوتية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "waves, and can therefore be used as a route to obtain images of a", "trans": "الموجات، وبالتالي يمكن استخدامها كطريق للحصول على صور لـ أ", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "deeper structure. For example. when the bladder is full of urine it", "trans": "هيكل أعمق. على سبيل المثال. عندما تمتلئ المثانة بالبول", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "forms an excellent acoustic window through which the pelvic", "trans": "يشكل نافذة صوتية ممتازة يتم من خلالها الحوض", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "structures may be imaged. Similarly, it is better to image the right", "trans": "يمكن تصوير الهياكل. وبالمثل، فمن الأفضل أن الصورة الصحيحة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "kidney through the liver than through the thick muscles of the back.", "trans": "الكلى عن طريق الكبد منه عن طريق عضلات الظهر السميكة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "In this case the liver is the acoustic window.", "trans": "في هذه الحالة الكبد هو النافذة الصوتية.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": " Anechogenic (anechoic):", "trans": " عديم الصدى (مانع الصدى):", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": " Without echoes; echo-free. For example, normal urine and bile are", "trans": " بلا أصداء؛ خالية من الصدى. على سبيل المثال، البول الطبيعي والصفراء", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "anechogenic, i.e. they have no internal echoes. • Cyst: A fluid-filled", "trans": "عديم المنشأ، أي ليس لديهم أصداء داخلية. • الكيس: وهو مملوء بالسوائل", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "structure (mass) with thin walls. A simple cyst characteristically has", "trans": "هيكل (كتلة) بجدران رقيقة. هناك كيس بسيط مميز", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "anechogenic (echo-free) content. with strong back wall reflections and", "trans": "محتوى عديم المنشأ (خالي من الصدى). مع انعكاسات الجدار الخلفي قوية و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "enhancement of the echoes behind the cyst. A cyst can be histologically", "trans": "تعزيز الأصداء خلف الكيس. يمكن أن يكون الكيس تشريحيا", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "benign or malignant.", "trans": "حميدة أو خبيثة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_d60ba9d9.jpg"}]}, {"content": [{"type": "image", "src": "images/img_ae2a447f.jpg"}]}, {"content": [{"type": "image", "src": "images/img_31c645b4.jpg"}]}, {"content": [{"type": "image", "src": "images/img_db363064.jpg"}]}, {"content": [{"type": "text", "text": " Debris:", "trans": " الحطام:", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": " Echogenic solid masses (of various sizes and shapes. with irregular", "trans": " كتل صلبة صدى (مختلفة الأحجام والأشكال. غير منتظمة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "outlines) within a fluid-filled mass. May be mobile. changing with the", "trans": "الخطوط العريضة) داخل كتلة مملوءة بالسوائل. قد يكون المحمول. يتغير مع", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "patient's position or movement.", "trans": "وضعية المريض أو حركته.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": " Hyperechogenic (hyperechoic): Describes tissues that create", "trans": " فرط الصدى (فرط الصدى): يصف الأنسجة التي تتشكل", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "brighter echoes than adjacent tissues, e.g. bone, perirenal fat, the", "trans": "أصداء أكثر سطوعًا من الأنسجة المجاورة، على سبيل المثال. العظام، والدهون حول الكلى، و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "wall of the gallbladder, and a cirrhotic liver (compared with normal", "trans": "جدار المرارة، وتليف الكبد (مقارنة بالطبيعي).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "liver).", "trans": "الكبد).", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": " Hypoechogenic (hypoechoic): Describes tissues that create dimmer", "trans": " ناقصة الصدى (ناقصة الصدى): تصف الأنسجة التي تسبب باهتة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "echoes than adjacent tissues, e.g. lymph nodes, some tumours and", "trans": "أصداء من الأنسجة المجاورة، على سبيل المثال. الغدد الليمفاوية وبعض الأورام و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "fluid. It is important to note that fluid is not the only hypoechogenic", "trans": "سائل. من المهم أن نلاحظ أن السائل ليس العامل الوحيد ناقص التولد", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "material.", "trans": "مادة.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": " Internal echoes: Ultrasound reflections from tissues of different", "trans": " الأصداء الداخلية: انعكاسات الموجات فوق الصوتية من الأنسجة المختلفة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "density within an organ. Internal echoes may arise from, for", "trans": "الكثافة داخل العضو. قد تنشأ أصداء داخلية من", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "example, gallstones within the gallbladder or debris within an", "trans": "على سبيل المثال، حصوات المرارة داخل المرارة أو الحطام داخل المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "abscess.", "trans": "خراج.", "words": {}, "isTitle": false, "isSubTitle": true}]}];
+        let currentIndex = 0;
+
+        function renderPage() {
+            try {
+                const container = document.getElementById('contentArea');
+                let html = '';
+                
+                pages.forEach((pageData, pageIndex) => {
+                    let activeClass = pageIndex === currentIndex ? 'active' : '';
+                    html += `<div class="slide-page ${activeClass}" id="page-${pageIndex}"><div class="slide-content-wrapper">`;
+                    
+                    pageData.content.forEach((item, idx) => {
+                        if (item.type === 'image') {
+                            html += `<div class="lecture-image-container"><img src="${item.src}" class="lecture-image"></div>`;
+                        } else {
+                            let cssClass = "english-paragraph";
+                            if (item.isTitle) cssClass = "title-text";
+                            if (item.isSubTitle) cssClass = "sub-title";
+
+                            let formattedBlock = '';
+                            let actualLines = item.text.split('\n');
+                            let localDict = item.words || {};
+                            
+                            actualLines.forEach(line => {
+                                let interactiveText = '';
+                                let words = line.split(' ');
+                                words.forEach(word => {
+                                    let clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                                    if (clean && /[a-z]/i.test(clean)) {
+                                        let safeWord = word.replace(/'/g, "\'").replace(/"/g, "&quot;");
+                                        let trans = localDict[clean] || fallbackDict[clean] || dictionary[clean] || "";
+                                        let transAttr = trans ? `data-trans="${trans}"` : '';
+                                        interactiveText += `<span class="interactive-word" data-clean="${clean}" ${transAttr} onclick="showWordMeaning('${clean}', '${safeWord}', this)">${word}</span> `;
+                                    } else {
+                                        interactiveText += `${word} `; 
+                                    }
+                                });
+                                formattedBlock += `<div>${interactiveText}</div>`;
+                            });
+
+                            let transFormatted = (item.trans || "").replace(/\n/g, '<br>');
+
+                            html += `
+                                <div class="text-block">
+                                    <div class="${cssClass}">
+                                        ${formattedBlock}
+                                    </div>
+                                    <button class="toggle-trans-btn" onclick="toggleTranslation('trans-${pageIndex}-${idx}')">
+                                        إظهار الترجمة &#11015;
+                                    </button>
+                                    <div id="trans-${pageIndex}-${idx}" class="inline-translation">
+                                        <strong style="color:#0056b3;">الترجمة الطبية:</strong><br>${transFormatted}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += `</div></div>`;
+                });
+
+                container.innerHTML = html;
+                updateControls();
+                
+                fetchAllWordsTranslation();
+
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        // ================= نظام الطباعة الذكي (انتظار الصور + الكبس الدقيق) =================
+        function printLecture() {
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري تجهيز الصور والملزمة...";
+            
+            const slides = document.querySelectorAll('.slide-page');
+            
+            // 1. فتح وعرض كل السلايدات أولاً حتى المتصفح يبدأ يحمل صورها
+            slides.forEach(slide => {
+                slide.style.display = 'block'; 
+                slide.classList.add('active'); 
+            });
+
+            // 2. مراقبة الصور والتأكد من تحميلها بالكامل قبل الكبس والطباعة
+            let images = Array.from(document.images);
+            let promises = images.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // نكمل حتى لو فشلت الصورة حتى لا يعلق
+                });
+            });
+
+            // 3. بعد تحميل الصور وتمددها بحجمها الحقيقي، نقوم بالكبس
+            Promise.all(promises).then(() => {
+                printBtn.innerHTML = "⏳ جاري ترتيب الصفحات...";
+                
+                slides.forEach(slide => {
+                    const wrapper = slide.querySelector('.slide-content-wrapper');
+                    if (wrapper) {
+                        wrapper.style.zoom = 1; 
+                        let scrollH = wrapper.scrollHeight;
+                        let targetH = 1000; // حجم ورقة A4 التقديري (مع الهوامش)
+                        
+                        // كبس السلايد إذا كان طويلاً جداً
+                        if (scrollH > targetH) {
+                            wrapper.style.zoom = targetH / scrollH; 
+                        }
+                    }
+                });
+
+                // 4. إعطاء المتصفح لحظة لتطبيق الكبس ثم فتح نافذة الطباعة
+                setTimeout(() => {
+                    printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+                    window.print();
+
+                    // 5. إرجاع الموقع لسلايد واحد بعد الإغلاق
+                    setTimeout(() => {
+                        slides.forEach((slide) => {
+                            slide.style.display = '';
+                            const wrapper = slide.querySelector('.slide-content-wrapper');
+                            if(wrapper) wrapper.style.zoom = 1;
+                        });
+                        renderPage();
+                    }, 1000);
+                }, 500);
+            });
+        }
+
+        // ================= دالة الجلب الشامل لترجمة الكلمات =================
+        async function fetchAllWordsTranslation() {
+            const spans = document.querySelectorAll('.interactive-word');
+            let missingWords = new Set();
+            
+            spans.forEach(span => {
+                let clean = span.getAttribute('data-clean');
+                if (clean && !span.getAttribute('data-trans')) {
+                    missingWords.add(clean);
+                }
+            });
+
+            let wordsArray = Array.from(missingWords);
+            if (wordsArray.length === 0) return;
+
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري استخراج الكلمات للـ PDF...";
+            printBtn.style.background = "#ff9800";
+
+            let chunkSize = 40;
+            for (let i = 0; i < wordsArray.length; i += chunkSize) {
+                let chunk = wordsArray.slice(i, i + chunkSize);
+                let query = chunk.join('\n');
+                try {
+                    let res = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=' + encodeURIComponent(query));
+                    let data = await res.json();
+                    
+                    let translatedLines = [];
+                    data[0].forEach(item => {
+                        if (item[0]) {
+                            translatedLines.push(item[0].replace(/[^\u0600-\u06FF\s]/g, '').trim());
+                        }
+                    });
+
+                    chunk.forEach((word, idx) => {
+                        let trans = translatedLines[idx] || word;
+                        if(!trans) trans = word;
+                        dictionary[word] = trans;
+                        document.querySelectorAll(`span[data-clean="${word}"]`).forEach(el => {
+                            el.setAttribute('data-trans', trans);
+                        });
+                    });
+                } catch(e) { console.error(e); }
+            }
+            
+            printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+            printBtn.style.background = "#28a745";
+        }
+
+        function updateControls() {
+            document.getElementById('pageIndicator').innerText = (currentIndex + 1) + " / " + pages.length;
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === pages.length - 1;
+        }
+
+        function changePage(dir) {
+            document.getElementById(`page-${currentIndex}`).classList.remove('active');
+            currentIndex += dir;
+            document.getElementById(`page-${currentIndex}`).classList.add('active');
+            updateControls();
+            window.scrollTo(0,0);
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        let currentWordForAudio = "";
+
+        async function showWordMeaning(cleanWord, originalWord, element) {
+            currentWordForAudio = originalWord.replace(/[^a-zA-Z]/g, '');
+            const enSpan = document.getElementById('swEnglish');
+            const arSpan = document.getElementById('swArabic');
+            
+            enSpan.innerText = currentWordForAudio;
+            const overlay = document.getElementById('sheetOverlay');
+            overlay.classList.add('active');
+
+            if (element && element.getAttribute('data-trans')) {
+                arSpan.innerText = element.getAttribute('data-trans');
+            } else {
+                arSpan.innerText = fallbackDict[cleanWord] || "جاري الترجمة...";
+            }
+        }
+
+        function playAudio() {
+            if (currentWordForAudio) {
+                const utterance = new SpeechSynthesisUtterance(currentWordForAudio);
+                utterance.lang = 'en-US'; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function closeSheet(e) {
+            if (e.target.id === 'sheetOverlay') {
+                const overlay = document.getElementById('sheetOverlay');
+                overlay.classList.remove('active');
+            }
+        }
+
+        renderPage();
+
+    </script>
+</body>
+</html>
