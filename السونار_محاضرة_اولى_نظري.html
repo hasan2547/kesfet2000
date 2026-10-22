@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محاضرة السونار محاضرة اولى نظري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #202124;
+            --accent-color: #0056b3;
+            --trans-bg: #f8f9fa;
+            --trans-border: #0056b3;
+            --nav-bg: #f8f9fa;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Roboto', 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 90px; min-height: 100vh; }
+        
+        .content-container { padding: 20px 20px; max-width: 800px; margin: 0 auto; direction: ltr; }
+        .text-block { margin-bottom: 25px; border-bottom: 1px dashed #ddd; padding-bottom: 15px; }
+        .title-text { font-weight: bold; font-size: 1.6rem; color: #000; margin-bottom: 15px; display: block; border-bottom: 3px solid var(--accent-color); padding-bottom: 10px; direction: ltr; }
+        .sub-title { font-weight: bold; font-size: 1.4rem; color: var(--accent-color); margin-top: 20px; margin-bottom: 10px; display: block; direction: ltr; }
+        
+        .english-paragraph { line-height: 2.2; font-size: 1.25rem; color: #333; margin-bottom: 8px; text-align: left; }
+        
+        .interactive-word { cursor: pointer; border-bottom: 1px dotted #999; transition: background 0.2s; position: relative; display: inline-block;}
+        .interactive-word:hover { background-color: #e3f2fd; color: var(--accent-color); }
+        
+        .toggle-trans-btn { background: none; border: none; color: #666; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 0; direction: rtl; width: 100%; }
+        .toggle-trans-btn:hover { color: var(--accent-color); }
+        
+        .inline-translation { display: none; background-color: var(--trans-bg); color: #000; padding: 12px; border-radius: 8px; margin-top: 5px; border-right: 4px solid var(--trans-border); font-family: 'Cairo', sans-serif; font-size: 1.15rem; line-height: 1.6; direction: rtl; text-align: justify; }
+
+        .lecture-image-container { width: 100%; margin: 20px 0; text-align: center; }
+        .lecture-image { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; }
+
+        .print-btn-float { position: fixed; top: 15px; right: 15px; background: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 1rem; cursor: pointer; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s;}
+        .print-btn-float:active { transform: scale(0.95); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: var(--nav-bg); border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 1000; direction: rtl; }
+        .nav-btn { background: var(--accent-color); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; }
+        .nav-btn:disabled { background-color: #e0e0e0; color: #999; }
+        .page-counter { font-family: 'Cairo', sans-serif; font-weight: bold; color: #555; background: #e9ecef; padding: 5px 15px; border-radius: 15px; }
+
+        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; visibility: hidden; display: flex; align-items: flex-end; transition: all 0.3s;}
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
+        .sheet-content { background: white; width: 100%; padding: 25px; border-top-left-radius: 25px; border-top-right-radius: 25px; text-align: center; transform: translateY(100%); transition: transform 0.3s;}
+        .sheet-overlay.active .sheet-content { transform: translateY(0); }
+        .selected-word-box { background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .sw-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
+        .audio-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; }
+        .sw-english { font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 1.4rem; color: var(--accent-color); }
+        .sw-arabic { font-family: 'Cairo', sans-serif; font-size: 1.3rem; color: #333; font-weight: bold; display: block; }
+
+        .slide-page { display: none; }
+        .slide-page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        /* ================= إعدادات الطباعة الآمنة للصور والخطوط ================= */
+        @page { size: A4 portrait; margin: 10mm; }
+        @media print {
+            body, html { width: 100%; background: white; color: black; margin: 0; padding: 0; }
+            .bottom-nav, .sheet-overlay, .toggle-trans-btn, .print-btn-float { display: none !important; }
+            
+            .content-container { max-width: 100%; padding: 0; margin: 0; }
+            
+            /* إزالة إخفاء المحتوى الزائد، وترك الصفحة تأخذ راحتها لتفادي النقص */
+            .slide-page { 
+                display: block !important; 
+                opacity: 1 !important; 
+                visibility: visible !important; 
+                position: relative !important; 
+                page-break-after: always !important; 
+                page-break-inside: avoid !important;
+                width: 100% !important;
+                padding: 0 !important; 
+                margin: 0 !important; 
+                box-sizing: border-box; 
+            }
+            
+            .slide-content-wrapper {
+                transform-origin: top center;
+                width: 100%;
+            }
+            
+            .text-block { border-bottom: 1px dashed #ccc; margin-bottom: 8px !important; padding-bottom: 5px !important;}
+            .lecture-image-container { margin: 10px 0 !important; text-align: center; page-break-inside: avoid;}
+            .lecture-image { max-height: 300px !important; max-width: 100% !important; object-fit: contain; }
+            
+            .inline-translation { display: block !important; font-size: 11pt !important; line-height: 1.5 !important; border-top: 1px dashed #bbb; margin-top: 8px !important; padding-top: 5px !important; color: #444; direction: rtl;}
+            
+            .interactive-word { border: none !important; position: relative; display: inline-block; margin-top: 22px;}
+            .interactive-word[data-trans]::after {
+                content: attr(data-trans);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 8pt !important;
+                color: #cc0000 !important; 
+                font-family: 'Cairo', sans-serif;
+                white-space: nowrap;
+                font-weight: bold;
+                direction: rtl;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn-float" id="mainPrintBtn" onclick="printLecture()">
+        🖨️ حفظ كـ PDF
+    </button>
+
+    <div class="content-container" id="contentArea"></div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" id="nextBtn" onclick="changePage(1)">التالي &#8592;</button>
+        <div class="page-counter" id="pageIndicator">1</div>
+        <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">&#8594; السابق</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+        <div class="sheet-content">
+            <div style="font-family:'Cairo'; color:#666; margin-bottom:10px;">معنى الكلمة:</div>
+            <div id="selectedWordBox" class="selected-word-box">
+                <div class="sw-container">
+                    <span id="swEnglish" class="sw-english"></span>
+                    <button id="audioBtn" class="audio-btn" onclick="playAudio()">🔊</button>
+                </div>
+                <span id="swArabic" class="sw-arabic"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // قاموس احتياطي لضمان السرعة للحروف الشائعة
+        const fallbackDict = {
+            "the":"الـ", "of":"من", "in":"في", "and":"و", "is":"هو", "are":"هم", "to":"إلى", "a":"أداة", "an":"أداة", "with":"مع", "without":"بدون",
+            "on":"على", "at":"عند", "by":"بواسطة", "for":"لـ", "from":"من", "or":"أو", "we":"نحن", "have":"نملك", "be":"يكون", "not":"لا"
+        };
+        const dictionary = {};
+        const pages = [{"content": [{"type": "image", "src": "images/img_da6fe7b3.jpg"}]}, {"content": [{"type": "text", "text": "What is ultrasound?", "trans": "What is ultrasound? (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• Ultrasound is the name given to high-frequency sound waves, over 20000 cycles per", "trans": "• Ultrasound is the name given to high-frequency sound waves, over 20000 cycles per (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "second (20 kHz).", "trans": "second (20 kHz). (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• These waves, inaudible to humans, can be transmitted in beams and are used to", "trans": "• These waves, inaudible to humans, can be transmitted in beams and are used to (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "scan the tissues of the body.", "trans": "scan the tissues of the body. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• Different tissues alter the waves in different ways: some reflect directly while others", "trans": "• Different tissues alter the waves in different ways: some reflect directly while others (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "scatter the waves before they return to the transducer as echoes.", "trans": "scatter the waves before they return to the transducer as echoes. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The reflected ultrasound pulses detected by the transducer need to be amplified in", "trans": "• The reflected ultrasound pulses detected by the transducer need to be amplified in (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "the scanner.", "trans": "the scanner. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• The echoes that come from deep within the body are more attenuated than those", "trans": "• The echoes that come from deep within the body are more attenuated than those (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "from the more superficial parts, and therefore require more amplification.", "trans": "from the more superficial parts, and therefore require more amplification. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_1d9d263e.jpg"}]}, {"content": [{"type": "text", "text": "Ultrasound generators :", "trans": "Ultrasound generators : (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• The ultrasound waves are generated by a piezoelectric transducer which is capable", "trans": "• The ultrasound waves are generated by a piezoelectric transducer which is capable (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "of changing electrical signals into mechanical (ultrasound) waves.", "trans": "of changing electrical signals into mechanical (ultrasound) waves. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The same transducer can also receive the reflected ultrasound and change it back", "trans": "• The same transducer can also receive the reflected ultrasound and change it back (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "into electrical Signals.", "trans": "into electrical Signals. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• Transducers are both transmitters and receivers of ultrasound.", "trans": "• Transducers are both transmitters and receivers of ultrasound. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_858463a6.jpg"}]}, {"content": [{"type": "text", "text": "• B-mode:", "trans": "• B-mode: (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• This type of image shows all the tissue traversed by the ultrasound scan. The images are", "trans": "• This type of image shows all the tissue traversed by the ultrasound scan. The images are (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "two-dimensional and are known as B-mode images or B-mode sections. If multiple Bmode images are watched in rapid sequence, they become real-time images.", "trans": "two-dimensional and are known as B-mode images or B-mode sections. If multiple Bmode images are watched in rapid sequence, they become real-time images. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_8bc066ba.jpg"}]}, {"content": [{"type": "text", "text": "Different modes of ultrasound", "trans": "Different modes of ultrasound (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "The various modes show the returning echoes in different ways:", "trans": "The various modes show the returning echoes in different ways: (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "A-mode:", "trans": "A-mode: (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "With this type of ultrasound unit, the echoes are shown as peaks, and the distances between", "trans": "With this type of ultrasound unit, the echoes are shown as peaks, and the distances between (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "the various structures can be measured.", "trans": "the various structures can be measured. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "This pattern is not usually displayed but similar information is used to build the twodimensional B-mode image.", "trans": "This pattern is not usually displayed but similar information is used to build the twodimensional B-mode image. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_c8552274.jpg"}]}, {"content": [{"type": "text", "text": "• Real-time:", "trans": "• Real-time: (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• This mode displays motion by showing the images of the part of the body under the", "trans": "• This mode displays motion by showing the images of the part of the body under the (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "transducer as it is being scanned.", "trans": "transducer as it is being scanned. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The images change with each movement of the transducer or if any part of the body is", "trans": "• The images change with each movement of the transducer or if any part of the body is (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "moving (for example, a moving fetus or pulsating artery).", "trans": "moving (for example, a moving fetus or pulsating artery). (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The movement is shown on the monitor in real time, as it occurs.", "trans": "• The movement is shown on the monitor in real time, as it occurs. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• In most real-time units, it is possible to \"freeze\" the displayed image, holding it stationary", "trans": "• In most real-time units, it is possible to \"freeze\" the displayed image, holding it stationary (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "so that it can be studied and measured if necessary.", "trans": "so that it can be studied and measured if necessary. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• M-mode:", "trans": "• M-mode: (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• is another way of displaying motion.", "trans": "• is another way of displaying motion. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The result is a wavy line.", "trans": "• The result is a wavy line. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• This mode is most commonly used for cardiac ultrasound", "trans": "• This mode is most commonly used for cardiac ultrasound (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_bb24378d.jpg"}]}, {"content": [{"type": "text", "text": "Ultrasound terms/ Glossary", "trans": "Ultrasound terms/ Glossary (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• Acoustic enhancement:", "trans": "• Acoustic enhancement: (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "The increased echogenicity (echo brightness) of tissues that lie behind a structure", "trans": "The increased echogenicity (echo brightness) of tissues that lie behind a structure (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "that causes little or no attenuation of the ultrasound waves, such as a fluid-filled", "trans": "that causes little or no attenuation of the ultrasound waves, such as a fluid-filled (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "cyst.", "trans": "cyst. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "The opposite to acoustic enhancement is acoustic shadowing.", "trans": "The opposite to acoustic enhancement is acoustic shadowing. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_24a838cf.jpg"}]}, {"content": [{"type": "text", "text": "Acoustic shadowing:", "trans": "Acoustic shadowing: (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• The decreased echogenicity of tissues that lie behind a structure that causes", "trans": "• The decreased echogenicity of tissues that lie behind a structure that causes (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "marked attenuation of the ultrasound waves.", "trans": "marked attenuation of the ultrasound waves. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• The opposite to acoustic shadowing is acoustic enhancement.", "trans": "• The opposite to acoustic shadowing is acoustic enhancement. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_0f7d464b.jpg"}]}, {"content": [{"type": "image", "src": "images/img_89d2d6e3.jpg"}]}, {"content": [{"type": "text", "text": "Acoustic window:", "trans": "Acoustic window: (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• A tissue or structure that offers little obstruction to the ultrasound waves, and can", "trans": "• A tissue or structure that offers little obstruction to the ultrasound waves, and can (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "therefore be used as a route to obtain images of a deeper structure.", "trans": "therefore be used as a route to obtain images of a deeper structure. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• For example. when the bladder is full of urine it forms an excellent acoustic window", "trans": "• For example. when the bladder is full of urine it forms an excellent acoustic window (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "through which the pelvic structures may be imaged.", "trans": "through which the pelvic structures may be imaged. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• Similarly, it is better to image the right kidney through the liver than through the", "trans": "• Similarly, it is better to image the right kidney through the liver than through the (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "thick muscles of the back. In this case the liver is the acoustic window.", "trans": "thick muscles of the back. In this case the liver is the acoustic window. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_cbe1cd77.jpg"}]}, {"content": [{"type": "text", "text": "Anechogenic (anechoic):", "trans": "Anechogenic (anechoic): (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• Without echoes; echo-free. For example, normal urine and bile are anechogenic, i.e.", "trans": "• Without echoes; echo-free. For example, normal urine and bile are anechogenic, i.e. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "they have no internal echoes.", "trans": "they have no internal echoes. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• Cyst: A fluid-filled structure (mass) with thin walls. A simple cyst characteristically has", "trans": "• Cyst: A fluid-filled structure (mass) with thin walls. A simple cyst characteristically has (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "anechogenic (echo-free) content. with strong back wall reflections and enhancement", "trans": "anechogenic (echo-free) content. with strong back wall reflections and enhancement (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "of the echoes behind the cyst. A cyst can be histologically benign or malignant.", "trans": "of the echoes behind the cyst. A cyst can be histologically benign or malignant. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "• Debris: Echogenic solid masses (of various sizes and shapes. with irregular outlines)", "trans": "• Debris: Echogenic solid masses (of various sizes and shapes. with irregular outlines) (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "within a fluid-filled mass. May be mobile. changing with the patient's position or", "trans": "within a fluid-filled mass. May be mobile. changing with the patient's position or (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "movement.", "trans": "movement. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_cefa5094.jpg"}]}, {"content": [{"type": "text", "text": "• Hyperechogenic (hyperechoic):", "trans": "• Hyperechogenic (hyperechoic): (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• Describes tissues that create brighter echoes than adjacent tissues, e.g. bone,", "trans": "• Describes tissues that create brighter echoes than adjacent tissues, e.g. bone, (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "perirenal fat, the wall of the gallbladder, and a cirrhotic liver (compared with normal", "trans": "perirenal fat, the wall of the gallbladder, and a cirrhotic liver (compared with normal (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "liver).", "trans": "liver). (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• Hypoechogenic (hypoechoic):", "trans": "• Hypoechogenic (hypoechoic): (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• Describes tissues that create dimmer echoes than adjacent tissues, e.g. lymph", "trans": "• Describes tissues that create dimmer echoes than adjacent tissues, e.g. lymph (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "nodes, some tumours and fluid. It is important to note that fluid is not the only", "trans": "nodes, some tumours and fluid. It is important to note that fluid is not the only (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "hypoechogenic material.", "trans": "hypoechogenic material. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• Internal echoes: Ultrasound reflections from tissues of different density within an", "trans": "• Internal echoes: Ultrasound reflections from tissues of different density within an (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "organ. Internal echoes may arise from, for example, gallstones within the gallbladder", "trans": "organ. Internal echoes may arise from, for example, gallstones within the gallbladder (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "or debris within an abscess.", "trans": "or debris within an abscess. (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_e3817810.jpg"}]}, {"content": [{"type": "image", "src": "images/img_dd82e418.jpg"}]}, {"content": [{"type": "image", "src": "images/img_b20896ad.jpg"}]}, {"content": [{"type": "text", "text": "Define the following ultrasound terms?", "trans": "Define the following ultrasound terms? (⚠️ فشل الاتصال)", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "• 1. Hypoechoic", "trans": "• 1. Hypoechoic (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• 2. Hyperechoic", "trans": "• 2. Hyperechoic (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• 3. Internal echoes", "trans": "• 3. Internal echoes (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• 4. Acoustic enhancement", "trans": "• 4. Acoustic enhancement (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "• 5. Acoustic shadowing", "trans": "• 5. Acoustic shadowing (⚠️ فشل الاتصال)", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_5f815bd2.jpg"}]}, {"content": [{"type": "image", "src": "images/img_0b54c55e.jpg"}]}, {"content": [{"type": "image", "src": "images/img_e543a0ff.jpg"}]}];
+        let currentIndex = 0;
+
+        function renderPage() {
+            try {
+                const container = document.getElementById('contentArea');
+                let html = '';
+                
+                pages.forEach((pageData, pageIndex) => {
+                    let activeClass = pageIndex === currentIndex ? 'active' : '';
+                    html += `<div class="slide-page ${activeClass}" id="page-${pageIndex}"><div class="slide-content-wrapper">`;
+                    
+                    pageData.content.forEach((item, idx) => {
+                        if (item.type === 'image') {
+                            html += `<div class="lecture-image-container"><img src="${item.src}" class="lecture-image"></div>`;
+                        } else {
+                            let cssClass = "english-paragraph";
+                            if (item.isTitle) cssClass = "title-text";
+                            if (item.isSubTitle) cssClass = "sub-title";
+
+                            let formattedBlock = '';
+                            let actualLines = item.text.split('\n');
+                            let localDict = item.words || {};
+                            
+                            actualLines.forEach(line => {
+                                let interactiveText = '';
+                                let words = line.split(' ');
+                                words.forEach(word => {
+                                    let clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                                    if (clean && /[a-z]/i.test(clean)) {
+                                        let safeWord = word.replace(/'/g, "\'").replace(/"/g, "&quot;");
+                                        let trans = localDict[clean] || fallbackDict[clean] || dictionary[clean] || "";
+                                        let transAttr = trans ? `data-trans="${trans}"` : '';
+                                        interactiveText += `<span class="interactive-word" data-clean="${clean}" ${transAttr} onclick="showWordMeaning('${clean}', '${safeWord}', this)">${word}</span> `;
+                                    } else {
+                                        interactiveText += `${word} `; 
+                                    }
+                                });
+                                formattedBlock += `<div>${interactiveText}</div>`;
+                            });
+
+                            let transFormatted = (item.trans || "").replace(/\n/g, '<br>');
+
+                            html += `
+                                <div class="text-block">
+                                    <div class="${cssClass}">
+                                        ${formattedBlock}
+                                    </div>
+                                    <button class="toggle-trans-btn" onclick="toggleTranslation('trans-${pageIndex}-${idx}')">
+                                        إظهار الترجمة &#11015;
+                                    </button>
+                                    <div id="trans-${pageIndex}-${idx}" class="inline-translation">
+                                        <strong style="color:#0056b3;">الترجمة الطبية:</strong><br>${transFormatted}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += `</div></div>`;
+                });
+
+                container.innerHTML = html;
+                updateControls();
+                
+                fetchAllWordsTranslation();
+
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        // ================= نظام الطباعة الذكي (انتظار الصور + الكبس الدقيق) =================
+        function printLecture() {
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري تجهيز الصور والملزمة...";
+            
+            const slides = document.querySelectorAll('.slide-page');
+            
+            // 1. فتح وعرض كل السلايدات أولاً حتى المتصفح يبدأ يحمل صورها
+            slides.forEach(slide => {
+                slide.style.display = 'block'; 
+                slide.classList.add('active'); 
+            });
+
+            // 2. مراقبة الصور والتأكد من تحميلها بالكامل قبل الكبس والطباعة
+            let images = Array.from(document.images);
+            let promises = images.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // نكمل حتى لو فشلت الصورة حتى لا يعلق
+                });
+            });
+
+            // 3. بعد تحميل الصور وتمددها بحجمها الحقيقي، نقوم بالكبس
+            Promise.all(promises).then(() => {
+                printBtn.innerHTML = "⏳ جاري ترتيب الصفحات...";
+                
+                slides.forEach(slide => {
+                    const wrapper = slide.querySelector('.slide-content-wrapper');
+                    if (wrapper) {
+                        wrapper.style.zoom = 1; 
+                        let scrollH = wrapper.scrollHeight;
+                        let targetH = 1000; // حجم ورقة A4 التقديري (مع الهوامش)
+                        
+                        // كبس السلايد إذا كان طويلاً جداً
+                        if (scrollH > targetH) {
+                            wrapper.style.zoom = targetH / scrollH; 
+                        }
+                    }
+                });
+
+                // 4. إعطاء المتصفح لحظة لتطبيق الكبس ثم فتح نافذة الطباعة
+                setTimeout(() => {
+                    printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+                    window.print();
+
+                    // 5. إرجاع الموقع لسلايد واحد بعد الإغلاق
+                    setTimeout(() => {
+                        slides.forEach((slide) => {
+                            slide.style.display = '';
+                            const wrapper = slide.querySelector('.slide-content-wrapper');
+                            if(wrapper) wrapper.style.zoom = 1;
+                        });
+                        renderPage();
+                    }, 1000);
+                }, 500);
+            });
+        }
+
+        // ================= دالة الجلب الشامل لترجمة الكلمات =================
+        async function fetchAllWordsTranslation() {
+            const spans = document.querySelectorAll('.interactive-word');
+            let missingWords = new Set();
+            
+            spans.forEach(span => {
+                let clean = span.getAttribute('data-clean');
+                if (clean && !span.getAttribute('data-trans')) {
+                    missingWords.add(clean);
+                }
+            });
+
+            let wordsArray = Array.from(missingWords);
+            if (wordsArray.length === 0) return;
+
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري استخراج الكلمات للـ PDF...";
+            printBtn.style.background = "#ff9800";
+
+            let chunkSize = 40;
+            for (let i = 0; i < wordsArray.length; i += chunkSize) {
+                let chunk = wordsArray.slice(i, i + chunkSize);
+                let query = chunk.join('\n');
+                try {
+                    let res = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=' + encodeURIComponent(query));
+                    let data = await res.json();
+                    
+                    let translatedLines = [];
+                    data[0].forEach(item => {
+                        if (item[0]) {
+                            translatedLines.push(item[0].replace(/[^\u0600-\u06FF\s]/g, '').trim());
+                        }
+                    });
+
+                    chunk.forEach((word, idx) => {
+                        let trans = translatedLines[idx] || word;
+                        if(!trans) trans = word;
+                        dictionary[word] = trans;
+                        document.querySelectorAll(`span[data-clean="${word}"]`).forEach(el => {
+                            el.setAttribute('data-trans', trans);
+                        });
+                    });
+                } catch(e) { console.error(e); }
+            }
+            
+            printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+            printBtn.style.background = "#28a745";
+        }
+
+        function updateControls() {
+            document.getElementById('pageIndicator').innerText = (currentIndex + 1) + " / " + pages.length;
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === pages.length - 1;
+        }
+
+        function changePage(dir) {
+            document.getElementById(`page-${currentIndex}`).classList.remove('active');
+            currentIndex += dir;
+            document.getElementById(`page-${currentIndex}`).classList.add('active');
+            updateControls();
+            window.scrollTo(0,0);
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        let currentWordForAudio = "";
+
+        async function showWordMeaning(cleanWord, originalWord, element) {
+            currentWordForAudio = originalWord.replace(/[^a-zA-Z]/g, '');
+            const enSpan = document.getElementById('swEnglish');
+            const arSpan = document.getElementById('swArabic');
+            
+            enSpan.innerText = currentWordForAudio;
+            const overlay = document.getElementById('sheetOverlay');
+            overlay.classList.add('active');
+
+            if (element && element.getAttribute('data-trans')) {
+                arSpan.innerText = element.getAttribute('data-trans');
+            } else {
+                arSpan.innerText = fallbackDict[cleanWord] || "جاري الترجمة...";
+            }
+        }
+
+        function playAudio() {
+            if (currentWordForAudio) {
+                const utterance = new SpeechSynthesisUtterance(currentWordForAudio);
+                utterance.lang = 'en-US'; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function closeSheet(e) {
+            if (e.target.id === 'sheetOverlay') {
+                const overlay = document.getElementById('sheetOverlay');
+                overlay.classList.remove('active');
+            }
+        }
+
+        renderPage();
+
+    </script>
+</body>
+</html>
