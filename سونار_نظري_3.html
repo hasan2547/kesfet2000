@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>محاضرة سونار نظري 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #202124;
+            --accent-color: #0056b3;
+            --trans-bg: #f8f9fa;
+            --trans-border: #0056b3;
+            --nav-bg: #f8f9fa;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Roboto', 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 0; padding-bottom: 90px; min-height: 100vh; }
+        
+        .content-container { padding: 20px 20px; max-width: 800px; margin: 0 auto; direction: ltr; }
+        .text-block { margin-bottom: 25px; border-bottom: 1px dashed #ddd; padding-bottom: 15px; }
+        .title-text { font-weight: bold; font-size: 1.6rem; color: #000; margin-bottom: 15px; display: block; border-bottom: 3px solid var(--accent-color); padding-bottom: 10px; direction: ltr; }
+        .sub-title { font-weight: bold; font-size: 1.4rem; color: var(--accent-color); margin-top: 20px; margin-bottom: 10px; display: block; direction: ltr; }
+        
+        .english-paragraph { line-height: 2.2; font-size: 1.25rem; color: #333; margin-bottom: 8px; text-align: left; }
+        
+        .interactive-word { cursor: pointer; border-bottom: 1px dotted #999; transition: background 0.2s; position: relative; display: inline-block;}
+        .interactive-word:hover { background-color: #e3f2fd; color: var(--accent-color); }
+        
+        .toggle-trans-btn { background: none; border: none; color: #666; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 0; direction: rtl; width: 100%; }
+        .toggle-trans-btn:hover { color: var(--accent-color); }
+        
+        .inline-translation { display: none; background-color: var(--trans-bg); color: #000; padding: 12px; border-radius: 8px; margin-top: 5px; border-right: 4px solid var(--trans-border); font-family: 'Cairo', sans-serif; font-size: 1.15rem; line-height: 1.6; direction: rtl; text-align: justify; }
+
+        .lecture-image-container { width: 100%; margin: 20px 0; text-align: center; }
+        .lecture-image { max-width: 100%; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid #eee; }
+
+        .print-btn-float { position: fixed; top: 15px; right: 15px; background: #28a745; color: white; border: none; padding: 10px 18px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; font-size: 1rem; cursor: pointer; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: all 0.3s;}
+        .print-btn-float:active { transform: scale(0.95); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background-color: var(--nav-bg); border-top: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 1000; direction: rtl; }
+        .nav-btn { background: var(--accent-color); color: white; border: none; padding: 10px 24px; border-radius: 50px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; }
+        .nav-btn:disabled { background-color: #e0e0e0; color: #999; }
+        .page-counter { font-family: 'Cairo', sans-serif; font-weight: bold; color: #555; background: #e9ecef; padding: 5px 15px; border-radius: 15px; }
+
+        .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; opacity: 0; visibility: hidden; display: flex; align-items: flex-end; transition: all 0.3s;}
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
+        .sheet-content { background: white; width: 100%; padding: 25px; border-top-left-radius: 25px; border-top-right-radius: 25px; text-align: center; transform: translateY(100%); transition: transform 0.3s;}
+        .sheet-overlay.active .sheet-content { transform: translateY(0); }
+        .selected-word-box { background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .sw-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 5px; }
+        .audio-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; }
+        .sw-english { font-family: 'Roboto', sans-serif; font-weight: bold; font-size: 1.4rem; color: var(--accent-color); }
+        .sw-arabic { font-family: 'Cairo', sans-serif; font-size: 1.3rem; color: #333; font-weight: bold; display: block; }
+
+        .slide-page { display: none; }
+        .slide-page.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        /* ================= إعدادات الطباعة الآمنة للصور والخطوط ================= */
+        @page { size: A4 portrait; margin: 10mm; }
+        @media print {
+            body, html { width: 100%; background: white; color: black; margin: 0; padding: 0; }
+            .bottom-nav, .sheet-overlay, .toggle-trans-btn, .print-btn-float { display: none !important; }
+            
+            .content-container { max-width: 100%; padding: 0; margin: 0; }
+            
+            /* إزالة إخفاء المحتوى الزائد، وترك الصفحة تأخذ راحتها لتفادي النقص */
+            .slide-page { 
+                display: block !important; 
+                opacity: 1 !important; 
+                visibility: visible !important; 
+                position: relative !important; 
+                page-break-after: always !important; 
+                page-break-inside: avoid !important;
+                width: 100% !important;
+                padding: 0 !important; 
+                margin: 0 !important; 
+                box-sizing: border-box; 
+            }
+            
+            .slide-content-wrapper {
+                transform-origin: top center;
+                width: 100%;
+            }
+            
+            .text-block { border-bottom: 1px dashed #ccc; margin-bottom: 8px !important; padding-bottom: 5px !important;}
+            .lecture-image-container { margin: 10px 0 !important; text-align: center; page-break-inside: avoid;}
+            .lecture-image { max-height: 300px !important; max-width: 100% !important; object-fit: contain; }
+            
+            .inline-translation { display: block !important; font-size: 11pt !important; line-height: 1.5 !important; border-top: 1px dashed #bbb; margin-top: 8px !important; padding-top: 5px !important; color: #444; direction: rtl;}
+            
+            .interactive-word { border: none !important; position: relative; display: inline-block; margin-top: 22px;}
+            .interactive-word[data-trans]::after {
+                content: attr(data-trans);
+                position: absolute;
+                bottom: 100%;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 8pt !important;
+                color: #cc0000 !important; 
+                font-family: 'Cairo', sans-serif;
+                white-space: nowrap;
+                font-weight: bold;
+                direction: rtl;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn-float" id="mainPrintBtn" onclick="printLecture()">
+        🖨️ حفظ كـ PDF
+    </button>
+
+    <div class="content-container" id="contentArea"></div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" id="nextBtn" onclick="changePage(1)">التالي &#8592;</button>
+        <div class="page-counter" id="pageIndicator">1</div>
+        <button class="nav-btn" id="prevBtn" onclick="changePage(-1)">&#8594; السابق</button>
+    </div>
+
+    <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet(event)">
+        <div class="sheet-content">
+            <div style="font-family:'Cairo'; color:#666; margin-bottom:10px;">معنى الكلمة:</div>
+            <div id="selectedWordBox" class="selected-word-box">
+                <div class="sw-container">
+                    <span id="swEnglish" class="sw-english"></span>
+                    <button id="audioBtn" class="audio-btn" onclick="playAudio()">🔊</button>
+                </div>
+                <span id="swArabic" class="sw-arabic"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // قاموس احتياطي لضمان السرعة للحروف الشائعة
+        const fallbackDict = {
+            "the":"الـ", "of":"من", "in":"في", "and":"و", "is":"هو", "are":"هم", "to":"إلى", "a":"أداة", "an":"أداة", "with":"مع", "without":"بدون",
+            "on":"على", "at":"عند", "by":"بواسطة", "for":"لـ", "from":"من", "or":"أو", "we":"نحن", "have":"نملك", "be":"يكون", "not":"لا"
+        };
+        const dictionary = {};
+        const pages = [{"content": [{"type": "image", "src": "images/img_6d6c551f.jpg"}]}, {"content": [{"type": "image", "src": "images/img_673f7e35.jpg"}]}, {"content": [{"type": "text", "text": "▪️ Biliary system diseases are a common pathology in medical practice.", "trans": "▪️أمراض الجهاز الصفراوي هي أمراض شائعة في الممارسة الطبية.", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ A frequent situation in everyday practice is a patient with pain in the right", "trans": "▪️من المواقف المتكررة في الممارسة اليومية هو إصابة المريض بألم في الجهة اليمنى", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "upper quadrant, in which the suspicion of biliary disease is the first diagnosis", "trans": "الربع العلوي، حيث يكون الاشتباه في وجود مرض الصفراوي هو التشخيص الأول", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "to confirm or exclude.", "trans": "للتأكيد أو الاستبعاد.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Ultrasound is a reliable method for the evaluation of the biliary system and", "trans": "▪️الموجات فوق الصوتية هي وسيلة موثوقة لتقييم الجهاز الصفراوي و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "is the first method of choice when a biliary disease is suspected. Ideally a", "trans": "هي الطريقة الأولى للاختيار عند الاشتباه في وجود مرض صفراوي. من الناحية المثالية أ", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "correct examination of the gallbladder and the biliary tree is performed on", "trans": "يتم إجراء الفحص الصحيح للمرارة والشجرة الصفراوية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "fasting patients.", "trans": "مرضى الصيام.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ The gallbladder is evaluated by means of right subcostal oblique sections", "trans": "▪️يتم تقييم المرارة عن طريق المقاطع المائلة تحت الضلع الأيمن", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "while for the hilum evaluation sections perpendicular on the ribs are used.", "trans": "بينما يتم استخدام أقسام تقييم نقير متعامدة على الأضلاع.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The structures are assessed regarding their size, wall thickness and content.", "trans": "▪️يتم تقييم الهياكل من حيث حجمها وسمك جدارها ومحتواها.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_bc2e12b2.jpg"}]}, {"content": [{"type": "image", "src": "images/img_2c710cbb.jpg"}]}, {"content": [{"type": "text", "text": "Indications", "trans": "المؤشرات", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "1.Pain in the right upper abdomen: suspected gallstones and/or", "trans": "1.ألم في الجزء العلوي الأيمن من البطن: اشتباه بوجود حصوات في المرارة و/أو", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "cholecystitis.", "trans": "التهاب المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "2.Jaundice.", "trans": "2. اليرقان.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "3.Palpable right upper abdominal mass.", "trans": "3. كتلة في الجزء العلوي الأيمن من البطن.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "4.Recurrent symptoms of peptic ulcer.", "trans": "4. ظهور أعراض القرحة الهضمية بشكل متكرر.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "5.Pyrexia of unknown origin.", "trans": "5. بيركسيا مجهولة المصدر.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "▪️ Normal anatomy of the gallbladder On the longitudinal scan the gallbladder will", "trans": "▪️ التشريح الطبيعي للمرارة عند الفحص الطولي ستظهر المرارة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "appear as an echo-free, pear-shaped structure.", "trans": "تظهر كهيكل على شكل كمثرى خالٍ من الصدى.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ It is very variable in position, size and shape, but the normal gallbladder is seldom", "trans": "▪️وهي متغيرة جدًا في موضعها وحجمها وشكلها، ولكن نادرًا ما تكون المرارة الطبيعية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "more than 4 cm wide .", "trans": "عرضها أكثر من 4 سم.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The gallbladder may be mobile.", "trans": "▪️المرارة قد تكون متحركة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ It may be elongated and on scanning may be found below the level of the", "trans": "▪️قد يكون متطاولاً وعلى المسح قد يوجد تحت مستوى", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "superior iliac crest (especially when the patient is erect).", "trans": "العرف الحرقفي العلوي (خاصة عندما يكون المريض منتصبا).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ It may be to the left of the midline. If not located in the normal position, scan", "trans": "▪️قد يكون على يسار خط الوسط. إذا لم يكن موجودا في الوضع الطبيعي، قم بالمسح الضوئي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "the whole abdomen, starting on the right side.", "trans": "البطن بالكامل، بدءاً من الجانب الأيمن.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_865e93eb.jpg"}]}, {"content": [{"type": "image", "src": "images/img_8e8203b9.jpg"}]}, {"content": [{"type": "text", "text": "The thickness of the gallbladder wall can be measured on transverse scans; in a fasting patient it is normally 3 mm or less and 1 mm when the gallbladder is distended.", "trans": "يمكن قياس سمك جدار المرارة من خلال عمليات المسح العرضي. في المريض الصائم يكون عادة 3 ملم أو أقل و1 ملم عند انتفاخ المرارة.", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "If the gallbladder is not identified in its usual position, scan the whole abdomen and the pelvis. If necessary, rescan after 6-8 hours, or ask a colleague to scan the patient.", "trans": "إذا لم يتم تحديد المرارة في وضعها الطبيعي، قم بفحص البطن بالكامل والحوض. إذا لزم الأمر، قم بإعادة الفحص بعد 6-8 ساعات، أو اطلب من أحد الزملاء إجراء فحص للمريض.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "Failure to demonstrate the gallbladder with ultrasound does not mean it is absent.", "trans": "عدم إظهار المرارة بالموجات فوق الصوتية لا يعني غيابها.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "▪️ It is not always easy to identify the normal main right and left hepatic", "trans": "▪️ليس من السهل دائمًا تحديد الكبد الرئيسي الطبيعي الأيمن والأيسر", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "biliary ducts, but when visible they are within the liver and appear as", "trans": "القنوات الصفراوية، ولكن عند ظهورها تكون داخل الكبد وتظهر على شكل", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "thin-walled tubular structures.", "trans": "الهياكل الأنبوبية رقيقة الجدران.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ However, the common hepatic duct can usually be recognized just", "trans": "▪️ومع ذلك، يمكن عادة التعرف على القناة الكبدية المشتركة فقط", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "anterior and lateral to the crossing portal vein, and its cross-section at", "trans": "الأمامي والجانبي لعبور الوريد البابي، والمقطع العرضي له في", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "this level should not exceed 5 mm.", "trans": "يجب ألا يتجاوز هذا المستوى 5 ملم.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The diameter of the common bile duct is variable but should not", "trans": "▪️قطر القناة الصفراوية المشتركة متغير ولكن لا ينبغي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "exceed 9 mm near its entrance into the pancreas.", "trans": "يتجاوز 9 ملم عند دخوله إلى البنكرياس.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_6d085a33.jpg"}]}, {"content": [{"type": "text", "text": "Nonvisualization of the gallbladder", "trans": "عدم رؤية المرارة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ There are various reasons why the gallbladder may not be seen by", "trans": "▪️هناك أسباب مختلفة قد تؤدي إلى عدم رؤية المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "ultrasound:", "trans": "الموجات فوق الصوتية:", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "1. The patient has not been fasting: re-examine after an interval of at least 6", "trans": "1. المريض لم يكن صائماً: يعاد الفحص بعد فترة لا تقل عن 6", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "hours without food or drink.", "trans": "ساعات دون طعام أو شراب.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2.The gallbladder lies in an unusual position.", "trans": "2. تقع المرارة في وضع غير عادي.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "3. The gallbladder is congenitally hypoplastic or absent.", "trans": "3. المرارة ناقصة التنسج خلقيًا أو غائبة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "4. The gallbladder is shrunken and full of stones (calculi), with associated", "trans": "4. المرارة منكمشة ومليئة بالحصى (الحصوات) وما يرتبط بها", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "acoustic shadowing.", "trans": "التظليل الصوتي.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "5. The gallbladder has been removed surgically: examine the abdomen for", "trans": "5. تم استئصال المرارة جراحيا : فحص البطن", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "scars and ask the patient (or relatives).", "trans": "الندوب واسأل المريض (أو الأقارب).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "6.The examiner is not properly trained or experienced: ask a colleague to", "trans": "6. الممتحن ليس مدربًا بشكل مناسب أو ذو خبرة: اطلب من أحد الزملاء القيام بذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "examine the patient.", "trans": "فحص المريض.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "7.There are very few pathological conditions (other than congenital absence or", "trans": "7. هناك حالات مرضية قليلة جداً (غير الغياب الخلقي أو", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "surgical removal) that result in persistent nonvisualization of the gallbladder by", "trans": "الاستئصال الجراحي) الذي يؤدي إلى عدم رؤية المرارة بشكل مستمر", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "ultrasound.", "trans": "الموجات فوق الصوتية.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "No clinical judgement should be made if the gallbladder is not", "trans": "لا ينبغي إصدار أي حكم سريري إذا لم تكن المرارة كذلك", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "visualized, even after scanning in different positions.", "trans": "تصور، حتى بعد المسح في مواقف مختلفة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_e24e700c.jpg"}]}, {"content": [{"type": "text", "text": "Abnormal gallbladder and biliary tract:", "trans": "المرارة والقنوات الصفراوية غير الطبيعية:", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ Distended gallbladder,", "trans": "▪️تضخم المرارة،", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Acute cholecystitis,", "trans": "▪️التهاب المرارة الحاد،", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Echoes within the gallbladder", "trans": "▪️أصداء داخل المرارة", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "Distended gallbladder :", "trans": "تضخم المرارة :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ The gallbladder is a small, pear-shaped organ that stores bile, a", "trans": "▪️المرارة عبارة عن عضو صغير على شكل كمثرى يقوم بتخزين الصفراء، أ", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "substance produced by the liver that helps to break down fats.", "trans": "مادة يفرزها الكبد وتساعد على تكسير الدهون.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ A distended gallbladder is not usually a serious condition,", "trans": "▪️المرارة المنتفخة ليست عادة حالة خطيرة،", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ it can sometimes lead to more serious problems that can lead to", "trans": "▪️قد يؤدي في بعض الأحيان إلى مشاكل أكثر خطورة يمكن أن تؤدي إلى", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "potentially life-threatening complications if left untreated.", "trans": "مضاعفات قد تهدد الحياة إذا تركت دون علاج.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ If you experience any of the symptoms listed below, it is important to", "trans": "▪️إذا شعرت بأي من الأعراض المذكورة أدناه، فمن المهم أن تفعل ذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "see a doctor right away so that the underlying cause can be properly", "trans": "قم بزيارة الطبيب على الفور حتى يتم علاج السبب الأساسي بشكل صحيح", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "diagnosed and treated.", "trans": "تشخيصها وعلاجها.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Also, Rupturing of the distended gallbladder is a medical emergency", "trans": "▪️كما أن تمزق المرارة المنتفخة يعتبر حالة طبية طارئة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "that requires immediate treatment.", "trans": "الذي يتطلب العلاج الفوري.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ A distended gallbladder is a condition when the gallbladder becomes", "trans": "▪️المرارة المنتفخة هي حالة تصبح فيها المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "swollen or enlarged.", "trans": "منتفخة أو متضخمة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Also, a distended gallbladder does not function properly.", "trans": "▪️كما أن المرارة المنتفخة لا تؤدي وظيفتها بشكل صحيح.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "What are the causes of gallbladder distended?", "trans": "ما هي أسباب انتفاخ المرارة؟", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "Enlarged (distended) gallbladder :", "trans": "تضخم (منتفخ) المرارة :", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ The gallbladder is enlarged if it exceeds 4 cm in width (transverse diameter).", "trans": "▪️تتضخم المرارة إذا زاد عرضها عن 4 سم (القطر العرضي).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The normal gallbladder may appear distended when the patient is dehydrated, has been on a low-fat diet or on intravenous nutrition, or has been", "trans": "▪️قد تظهر المرارة الطبيعية منتفخة عندما يعاني المريض من الجفاف، أو يتبع نظامًا غذائيًا قليل الدهون أو يتغذى عن طريق الوريد، أو كان يعاني من جفاف.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "immobilized for some time.", "trans": "يجمد لبعض الوقت.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ If there is no clinical evidence of cholecystitis, and fi the gallbladder wall", "trans": "▪️إذا لم يكن هناك دليل سريري على التهاب المرارة، وفي جدار المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "does not appear thickened on ultrasound, give the patient a fatty meal and", "trans": "لا يبدو سميكا على الموجات فوق الصوتية، وإعطاء المريض وجبة دسمة و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "repeat the ultrasound examination in 45 minutes to 1hour, A normal", "trans": "كرر الفحص بالموجات فوق الصوتية خلال 45 دقيقة إلى ساعة واحدة، وهو أمر طبيعي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "gallbladder will contract.", "trans": "سوف تنقبض المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "o If there is no contraction, search for:", "trans": "o إذا لم يكن هناك انكماش، ابحث عن:", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "1. A gallstone or other cause of obstruction within the cystic duct., The hepatic", "trans": "1. وجود حصوة في المرارة أو أي سبب آخر لانسداد القناة المرارية والكبدية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "and bile ducts will be normal,", "trans": "وستكون القنوات الصفراوية طبيعية،", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2. If there is no internal obstruction, there may be a mass or lymph node", "trans": "2. إذا لم يكن هناك انسداد داخلي، فقد يكون هناك كتلة أو عقدة ليمفاوية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "pressing externally on the duct.", "trans": "الضغط خارجيا على القناة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "1. A stone or other obstruction in the common bile duct, The common hepatic", "trans": "1. وجود حجر أو انسداد آخر في القناة الصفراوية المشتركة، الكبدية المشتركة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "duct will be dilated (over 5 mm diameter).", "trans": "سيتم توسيع القناة (قطرها أكثر من 5 مم).", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "gallstone or other cause of obstruction within the cystic duct or common bile duct", "trans": "حصوة في المرارة أو أي سبب آخر للانسداد داخل القناة المرارية أو القناة الصفراوية المشتركة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "image", "src": "images/img_04155997.jpg"}]}, {"content": [{"type": "text", "text": "Examine the common bile duct for Ascaris.", "trans": "فحص القناة الصفراوية المشتركة للتأكد من وجود الإسكاريس.", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ If the gallbladder is distended with thickened walls (greater than 5", "trans": "▪️إذا كانت المرارة منتفخة بجدران سميكة (أكبر من 5", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "mm) and filled with fluid, there may be an empyema: local tenderness", "trans": "مم) ومليئة بالسوائل، قد يكون هناك دبيلة: ألم موضعي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "is likely.", "trans": "من المحتمل.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Check the patient clinically.", "trans": "▪️فحص المريض سريرياً.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ If the gallbladder is distended with thin walls and filled with fluid, there", "trans": "▪️إذا كانت المرارة منتفخة بجدران رقيقة ومملوءة بالسوائل، فهناك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "may be a mucocele.", "trans": "قد تكون قيلة مخاطية.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ This does not usually result in local tenderness.", "trans": "▪️وهذا لا يؤدي عادة إلى ألم موضعي.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "Acute cholecystitis :", "trans": "التهاب المرارة الحاد :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ Clinically, acute cholecystitis usually associated with pain in the right", "trans": "▪️سريريًا، عادةً ما يرتبط التهاب المرارة الحاد بألم في الجهة اليمنى", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "upper abdomen and with local tenderness when the transducer is", "trans": "الجزء العلوي من البطن مع ألم موضعي عند استخدام محول الطاقة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "(carefully) applied near the gallbladder.", "trans": "(بعناية) يطبق بالقرب من المرارة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ There may be one or more gallstones, probably including a stone in the", "trans": "▪️قد يكون هناك حصوة واحدة أو أكثر في المرارة، ومن المحتمل أن يكون هناك حصوة في", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "gallbladder neck or in the cystic duct.", "trans": "عنق المرارة أو في القناة الكيسية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The walls of the gallbladder are likely to be thickened and", "trans": "▪️من المحتمل أن تكون جدران المرارة سميكة و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "oedematous, and, therefore, the gallbladder is not always distended.", "trans": "وذمي، وبالتالي لا تكون المرارة منتفخة دائمًا.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ If the gallbladder has perforated, there is usually fluid adjacent to it.", "trans": "▪️إذا كانت المرارة مثقوبة، فعادةً ما يكون هناك سائل مجاور لها.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_db2eef1f.jpg"}]}, {"content": [{"type": "text", "text": "Gallstones do not always cause symptoms: exclude", "trans": "لا تسبب حصوات المرارة دائمًا أعراضًا: استبعاد", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "other disease even when there are gallstones.", "trans": "أمراض أخرى حتى في حالة وجود حصوات في المرارة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "image", "src": "images/img_68fdfe9c.jpg"}]}, {"content": [{"type": "text", "text": "Echoes within the gallbladder :", "trans": "أصداء داخل المرارة :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ Mobile internal echoes with shadowing", "trans": "▪️صدى داخلي متنقل مع التظليل", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Gallstones can be recognized as bright intraluminal echogenic structures with an", "trans": "▪️ يمكن التعرف على حصوات المرارة على أنها هياكل صدى لامعة داخل اللمعة ذات", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "acoustic shadow.", "trans": "الظل الصوتي.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ The stones may be single or multiple, large or small, calcified or non-calcified.", "trans": "▪️الحجارة قد تكون مفردة أو متعددة، كبيرة أو صغيرة، متكلسة أو غير متكلسة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The gallbladder walls may be normal or thickened (Fig-6).", "trans": "▪️قد تكون جدران المرارة عادية أو سميكة (الشكل-6).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ When gallstones are suspected but not seen clearly on routine scans, rescan with the", "trans": "▪️عند الاشتباه في وجود حصوات في المرارة ولكن لا يمكن رؤيتها بوضوح في عمليات الفحص الروتينية، قم بإعادة الفحص باستخدام", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "patient oblique or erect.", "trans": "المريض مائل أو منتصب.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Most gallstones will change position within the gallbladder as the patient moves.", "trans": "▪️معظم حصوات المرارة يتغير موضعها داخل المرارة مع تحرك المريض.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ If there is still any doubt, scan the patient in the hands/knees position.", "trans": "▪️إذا كان لا يزال هناك أي شك، قم بمسح المريض في وضع اليدين / الركبتين.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The gallstones will move anteriorly.", "trans": "▪️ ستتحرك الحصوات المرارية إلى الأمام.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ This position may also be useful fi there is excessive bowel gas.", "trans": "▪️قد يكون هذا الوضع مفيدًا أيضًا في حالة وجود غازات زائدة في الأمعاء.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_16174ef0.jpg"}]}, {"content": [{"type": "text", "text": "Ultrasound can reliably diagnose gallstones when they", "trans": "يمكن للموجات فوق الصوتية تشخيص حصوات المرارة بشكل موثوق عندما تكون", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "are in the gallbladder.", "trans": "موجودة في المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "Ultrasound is not always reliable in recognizing stones", "trans": "لا يمكن الاعتماد دائمًا على الموجات فوق الصوتية في التعرف على الحصوات", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "in the bile ducts.", "trans": "في القنوات الصفراوية.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "Gallstones do not always cause symptoms: exclude", "trans": "لا تسبب حصوات المرارة دائمًا أعراضًا: استبعاد", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "other disease even when there are gallstones.", "trans": "أمراض أخرى حتى في حالة وجود حصوات في المرارة.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "Mobile internal echoes without shadowing :", "trans": "أصداء داخلية متنقلة بدون تظليل :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "Scans should be taken in different positions.", "trans": "وينبغي أن تؤخذ عمليات المسح في مواقف مختلفة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "The common causes are:", "trans": "الأسباب الشائعة هي:", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "1. Gallstones. Note that there will be no acoustic shadow if the stones are smaller than the", "trans": "1. حصوات المرارة. لاحظ أنه لن يكون هناك ظل صوتي إذا كانت الحجارة أصغر من حجمها", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "diameter of the ultrasound beam.", "trans": "قطر شعاع الموجات فوق الصوتية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2. Gallbladder sludge. This is thickened bile which produces fine dependent echoes that", "trans": "2. حمأة المرارة. هذه هي الصفراء السميكة التي تنتج أصداء دقيقة تعتمد عليها", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "move slowly with a change in the position of the patient, unlike stones which tend to", "trans": "تتحرك ببطء مع تغير وضعية المريض، على عكس الحصوات التي تميل إلى ذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "move quickly.", "trans": "التحرك بسرعة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "3. Pyogenic debris.", "trans": "3. الحطام القيحي.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "4. Blood clots.", "trans": "4. جلطات الدم.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "5. Hydatid membranes. Scan the liver for cysts.", "trans": "5. الأغشية المائية. فحص الكبد بحثًا عن الخراجات.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "6. Ascaris and other parasites.", "trans": "6. الإسكارس والطفيليات الأخرى.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_59e041a4.jpg"}]}, {"content": [{"type": "text", "text": "Nonmobile internal echoes with shadowing :", "trans": "أصداء داخلية غير متحركة مع التظليل :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "1.The commonest cause is an impacted calculus: search for other calculi.", "trans": "1. السبب الأكثر شيوعًا هو حساب التفاضل والتكامل المتأثر: ابحث عن حسابات أخرى.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2. The calcification may also be in the gallbladder wall: if the wall is also thickened, there", "trans": "2. قد يكون التكلس أيضًا في جدار المرارة: إذا كان الجدار سميكًا أيضًا، فهناك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "may be acute or chronic cholecystitis, but it may be difficult to exclude an associated", "trans": "قد يكون التهاب المرارة حادًا أو مزمنًا، ولكن قد يكون من الصعب استبعاد وجود مرض مرتبط به", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "carcinoma.", "trans": "سرطان.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_903bbdb5.jpg"}]}, {"content": [{"type": "text", "text": "Nonmobile internal echoes without shadowing :", "trans": "أصداء داخلية غير متحركة دون تظليل :", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "1.The most common cause is a polyp;", "trans": "1. السبب الأكثر شيوعا هو ورم.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "It may be possible to identify the pedicle by using different scanning projections.", "trans": "قد يكون من الممكن التعرف على السويقات باستخدام إسقاطات مسح مختلفة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "There should be no acoustic shadowing, and changing the patient's position will not", "trans": "يجب ألا يكون هناك تظليل صوتي، ولن يتم تغيير وضع المريض", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "move the polyp but may alter its shape.", "trans": "تحريك الورم ولكن قد يغير شكله.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2. Malignant disease may resemble a polyp but is more often associated with", "trans": "2. قد يشبه المرض الخبيث السليلة ولكنه يرتبط في أغلب الأحيان", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "thickening of the gallbladder wall and does not usually have a pedicle.", "trans": "سماكة جدار المرارة ولا تحتوي عادة على عنيق.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "A malignant tumour is less likely to change its shape when the patient changes position.", "trans": "من غير المرجح أن يغير الورم الخبيث شكله عندما يغير المريض وضعه.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "A septum or fold within the gallbladder is not likely to be of any clinical significance.", "trans": "من غير المرجح أن يكون للحاجز أو الطية داخل المرارة أي أهمية سريرية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "A malignant tumo", "trans": "ورم خبيث", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "image", "src": "images/img_50f491c0.jpg"}]}, {"content": [{"type": "text", "text": "▪️Thick gallbladder walls,", "trans": "▪️جدران المرارة السميكة.", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ Small gallbladder,", "trans": "▪️المرارة الصغيرة،", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Gallbladder in jaundice", "trans": "▪️المرارة في حالة اليرقان", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "Thickening of the gallbladder wall", "trans": "سماكة جدار المرارة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ is a relatively frequent finding on diagnostic imaging studies.", "trans": "▪️هو اكتشاف متكرر نسبيًا في دراسات التصوير التشخيصي.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Historically, a thick-walled gallbladder has been regarded as proof of primary", "trans": "▪️تاريخيًا، تم اعتبار المرارة ذات الجدران السميكة دليلاً على الابتدائي", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "gallbladder disease, and it is a well-known hallmark feature of acute cholecystitis.", "trans": "مرض المرارة، وهو سمة مميزة معروفة لالتهاب المرارة الحاد.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The finding itself, however, is nonspecific and can also be found in a variety of conditions", "trans": "▪️ ومع ذلك، فإن النتيجة نفسها غير محددة ويمكن العثور عليها أيضًا في مجموعة متنوعة من الحالات", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "unrelated to intrinsic gallbladder disease.", "trans": "لا علاقة لها بمرض المرارة الجوهرية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Diffuse gallbladder wall thickening may produce a diagnostic problem because it occurs", "trans": "▪️سماكة جدار المرارة المنتشرة قد تنتج مشكلة تشخيصية عند حدوثها", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "in symptomatic and asymptomatic patients and in patients with and those without an", "trans": "في المرضى الذين يعانون من أعراض وبدون أعراض وفي المرضى الذين يعانون من أو ليس لديهم", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "indication for cholecystectomy.", "trans": "إشارة لاستئصال المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Misinterpretation of the cause of this imaging finding can lead to an unnecessary", "trans": "▪️التفسير الخاطئ لسبب هذه النتيجة التصويرية يمكن أن يؤدي إلى نتائج غير ضرورية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "cholecystectomy in patients without intrinsic gallbladder disease and, conversely,", "trans": "استئصال المرارة لدى المرضى الذين لا يعانون من مرض المرارة الجوهري، وعلى العكس من ذلك،", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "misdiagnosis in patients who do require a cholecystectomy may result in delayed", "trans": "التشخيص الخاطئ لدى المرضى الذين يحتاجون إلى استئصال المرارة قد يؤدي إلى تأخير", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "treatment with increased morbidity.", "trans": "العلاج مع زيادة المراضة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ In this essay, we discuss and illustrate the various causes of a thickened gallbladder wall", "trans": "▪️في هذا المقال نناقش ونوضح الأسباب المختلفة لسماكة جدار المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "because knowledge of its differential diagnosis is essential for the correct interpretation of", "trans": "لأن معرفة تشخيصها التفريقي ضروري لتفسيرها الصحيح", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "this finding.", "trans": "هذه النتيجة.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "What is the association between gallbladder wall", "trans": "ما العلاقة بين جدار المرارة؟", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "and acute cholecystitis?", "trans": "والتهاب المرارة الحاد؟", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "▪️ Sonography, CT, and MRI all allow direct visualization of the normal and thickened", "trans": "▪️ التصوير بالموجات فوق الصوتية، والأشعة المقطعية، والتصوير بالرنين المغناطيسي، كلها تسمح بالتصور المباشر للحالة الطبيعية والمثخنة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "gallbladder wall.", "trans": "جدار المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ Traditionally, sonography is used as the initial imaging technique for evaluating patients with", "trans": "▪️تقليديًا، يتم استخدام التصوير بالموجات فوق الصوتية كتقنية تصوير أولية لتقييم المرضى الذين يعانون من", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "suspected gallbladder disease because of its high sensitivity in the detection of gallbladder", "trans": "الاشتباه بمرض المرارة بسبب حساسيته العالية في الكشف عن المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "stones, its real-time character, and its speed and portability.", "trans": "الحجارة، وطابعها في الوقت الحقيقي، وسرعتها وقابليتها للنقل.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ However, CT has become popular for evaluating the acute abdomen and often is the first", "trans": "▪️ومع ذلك، أصبح التصوير المقطعي المحوسب شائعًا لتقييم البطن الحاد وغالبًا ما يكون الأول", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "technique to show gallbladder wall thickening, or CT may be used as an adjunct to an", "trans": "تقنية لإظهار سماكة جدار المرارة، أو يمكن استخدام التصوير المقطعي كعامل مساعد", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "inconclusive sonography examination or for staging of disease.", "trans": "فحص الموجات فوق الصوتية غير حاسم أو لتحديد مراحل المرض.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The potential value of MRI in the evaluation of gallbladder disease , but it still plays little role.", "trans": "▪️القيمة المحتملة للتصوير بالرنين المغناطيسي في تقييم مرض المرارة، لكنه لا يزال يلعب دورًا ضئيلًا.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The normal gallbladder wall appears as a pencil-thin echogenic line on sonography and is", "trans": "▪️يظهر جدار المرارة الطبيعي كخط صدى رفيع بحجم قلم الرصاص في التصوير بالموجات فوق الصوتية وهو كذلك", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "usually visible on CT as a thin rim of soft-tissue density that enhances after contrast injection.", "trans": "عادة ما تكون مرئية على التصوير المقطعي كحافة رقيقة من كثافة الأنسجة الرخوة التي تتعزز بعد حقن التباين.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The thickness of the gallbladder wall depends on the degree of gallbladder distention, and", "trans": "▪️سمك جدار المرارة يعتمد على درجة انتفاخ المرارة، و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "pseudothickening can occur in the postprandial state.", "trans": "يمكن أن يحدث سماكة كاذبة في حالة ما بعد الأكل.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ A thickened gallbladder wall measures more than 3 mm, typically has a layered", "trans": "▪️يبلغ حجم جدار المرارة السميك أكثر من 3 مم، وعادةً ما يكون له طبقات", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "appearance at sonography, and frequently contains a hypodense layer of subserosal", "trans": "يظهر عند التصوير بالموجات فوق الصوتية، وكثيرًا ما يحتوي على طبقة منخفضة الكثافة من تحت المصلية", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "edema that mimics pericholecystic fluid at CT.", "trans": "وذمة تحاكي السائل المحيط بالكلية في التصوير المقطعي.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "▪️ Thick gallbladder walls Generalized thickening The thickness of the", "trans": "▪️سماكة جدران المرارة سماكة معممة سماكة", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "gallbladder wall is normally less than 3 mm and should not exceed 5", "trans": "حجم جدار المرارة عادة يكون أقل من 3 ملم ولا يزيد عن 5", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "mm.", "trans": "مم.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ When the thickness is between 3 mm and 5 mm, careful clinical", "trans": "▪️عندما يكون السمك بين 3 ملم و 5 ملم يجب الحرص السريري", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "correlation is needed. Generalized thickening of the gallbladder wall", "trans": "هناك حاجة إلى الارتباط. سماكة عامة في جدار المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "can occur in the following conditions:", "trans": "يمكن أن يحدث في الحالات التالية:", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "1. Acute cholecystitis.", "trans": "1. التهاب المرارة الحاد.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "2. Chronic cholecystitis.", "trans": "2. التهاب المرارة المزمن.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "3. Hypoalbuminaemia resulting from cirrhosis. Check for ascites, dilated", "trans": "3. نقص ألبومين الدم الناتج عن تليف الكبد. التحقق من الاستسقاء، المتوسعة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "portal veins and splenomegaly.", "trans": "الأوردة البابية وتضخم الطحال.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "4. Congestive cardiac failure. Check for ascites, pleural effusions, and", "trans": "4. فشل القلب الاحتقاني. التحقق من وجود الاستسقاء، والانصباب الجنبي، و", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "dilated inferior vena cava and hepatic veins. Examine the patient.", "trans": "توسع الوريد الأجوف السفلي والأوردة الكبدية. فحص المريض.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "5. Chronic renal insufficiency. Examine the kidneys and the urine.", "trans": "5. القصور الكلوي المزمن. فحص الكلى والبول.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "6. Multiple myeloma.", "trans": "6. المايلوما المتعددة.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "7. Hyperplasticcholecystosis.", "trans": "7. فرط تنسج المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "Localized thickening", "trans": "سماكة موضعية", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "Local thickening of the gallbladder walls may be due to the following:", "trans": "قد يكون سبب السماكة المحلية لجدران المرارة هو ما يلي:", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "1. Mucosal folds.", "trans": "1. الطيات المخاطية.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "2. Polyp.", "trans": "2. ورم.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "3. Primary or secondary carcinoma of the gallbladder.", "trans": "3. سرطان المرارة الأولي أو الثانوي.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "Small gallbladder :", "trans": "المرارة الصغيرة :", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "1. The patient may recently have had a meal containing fat and the gallbladder has", "trans": "1. قد يكون المريض قد تناول مؤخراً وجبة تحتوي على دهون وقد أصيبت المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "contracted.", "trans": "التعاقد.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "2. Chronic cholecystitis: check for thickened gallbladder walls and for gallstones within", "trans": "2. التهاب المرارة المزمن: تحقق من سماكة جدران المرارة ووجود حصوات في المرارة", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "the gallbladder.", "trans": "المرارة.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "If the gallbladder is small, re-examine after 6-8 hours", "trans": "إذا كانت المرارة صغيرة، يُعاد فحصها بعد 6-8 ساعات", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "(without food or drink) to differentiate between an", "trans": "(من غير طعام أو شراب) للتفريق بين", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "empty gallbladder and a contracted gallbladder. The", "trans": "المرارة الفارغة والمرارة المنقبضة. ال", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "normal gallbladder will fill up after a few hours and", "trans": "سوف تمتلئ المرارة الطبيعية بعد بضع ساعات", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "appear normal in size.", "trans": "تبدو طبيعية في الحجم.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "Jaundice:", "trans": "اليرقان:", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "When the patient is jaundiced, ultrasound can usually differentiate between non obstructive and obstructive jaundice, by showing the dilatation of the biliary system.", "trans": "عندما يعاني المريض من اليرقان، يمكن بالموجات فوق الصوتية عادة التمييز بين اليرقان غير الانسدادي واليرقان الانسدادي، من خلال إظهار توسع الجهاز الصفراوي.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "When the patient is jaundiced, ultrasound can provide information about the gallbladder and the biliary ducts, and can usually differentiate between obstructive and non-obstructive jaundice, but does not always show the exact cause.", "trans": "عندما يصاب المريض باليرقان، يمكن أن توفر الموجات فوق الصوتية معلومات حول المرارة والقنوات الصفراوية، ويمكن عادةً التمييز بين اليرقان الانسدادي وغير الانسدادي، ولكنها لا تظهر دائمًا السبب الدقيق.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "In every jaundiced patient, scan the liver, the biliary tract and both sides of the upper abdomen.", "trans": "في كل مريض مصاب باليرقان، قم بفحص الكبد والقناة الصفراوية وجانبي الجزء العلوي من البطن.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "text", "text": "Normal bile ducts - Extrahepatic ducts.", "trans": "القنوات الصفراوية الطبيعية - القنوات خارج الكبد.", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "▪️ It may be difficult to see the extrahepatic bile ducts. - Intrahepatic ducts.", "trans": "▪️قد يكون من الصعب رؤية القنوات الصفراوية خارج الكبد. - القنوات داخل الكبد.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ The intrahepatic ducts are best seen on the left side of the liver in deep", "trans": "▪️من الأفضل رؤية القنوات داخل الكبد على الجانب الأيسر من الكبد بعمق", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "inspiration.", "trans": "إلهام.", "words": {}, "isTitle": false, "isSubTitle": true}, {"type": "text", "text": "▪️ It is not easy to see the normal intrahepatic ducts on ultrasound because", "trans": "▪️ليس من السهل رؤية القنوات الكبدية الطبيعية على الموجات فوق الصوتية بسبب", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "they are often too small and thin-walled.", "trans": "غالبًا ما تكون صغيرة جدًا وذات جدران رقيقة.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Maximum diameter of normal common hepatic duct: less than5 mm", "trans": "▪️القطر الأقصى للقناة الكبدية المشتركة الطبيعية: أقل من 5 ملم", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Maximum diameter of normal common bile duct: less than 9mm", "trans": "▪️القطر الأقصى للقناة الصفراوية المشتركة الطبيعية: أقل من 9 ملم", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Maximum diameter of common bile duct post-cholecystectomy:10-12mm", "trans": "▪️القطر الأقصى للقناة الصفراوية المشتركة بعد استئصال المرارة: 10-12 ملم", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "Sometimes following surgery, and in patients over 70 years of age, the", "trans": "في بعض الأحيان بعد الجراحة، وفي المرضى الذين تزيد أعمارهم عن 70 عامًا، قد يحدث", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "common bile duct may be a few millimetres wider (i.e. 12-14 mm).", "trans": "قد تكون القناة الصفراوية المشتركة أوسع ببضعة ملليمترات (أي 12-14 ملم).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "▪️ Add 1 mm to all of the measurements above for each decade over 70", "trans": "▪️يضاف 1 ملم لجميع القياسات المذكورة أعلاه لكل عقد فوق 70", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "years of age.", "trans": "سنوات من العمر.", "words": {}, "isTitle": false, "isSubTitle": true}]}, {"content": [{"type": "text", "text": "Gallbladder in jaundice", "trans": "المرارة في حالة اليرقان", "words": {}, "isTitle": true, "isSubTitle": false}, {"type": "text", "text": "1. If the gallbladder is distended, the obstruction usually affects the common bile duct (e.g. calculus, Ascaris, pancreatitis or carcinoma). The hepatic ducts will also be distended.", "trans": "1. إذا كانت المرارة منتفخة، فإن الانسداد عادة ما يؤثر على القناة الصفراوية المشتركة (مثل الحصى، الإسكارس، التهاب البنكرياس أو السرطان). كما سيتم انتفاخ القنوات الكبدية.", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "2. If the gallbladder is not distended or is very small, obstruction is unlikely or the obstruction is above the level of the cystic duct (e.g. enlarged lymph nodes or tumour near the porta hepatis).", "trans": "2. إذا لم تكن المرارة منتفخة أو كانت صغيرة جدًا، فمن غير المحتمل حدوث انسداد أو كان الانسداد أعلى من مستوى القناة المرارية (مثل تضخم العقد الليمفاوية أو الورم بالقرب من باب الكبد).", "words": {}, "isTitle": false, "isSubTitle": false}, {"type": "text", "text": "Ultrasound can diagnose gallstones in the gallbladder but is not always reliable in recognizing stones in the common bile duct. Clinical judgement must be used, especially in the jaundiced patient.", "trans": "يمكن للموجات فوق الصوتية تشخيص حصوات المرارة في المرارة ولكنها لا يمكن الاعتماد عليها دائمًا في التعرف على الحصوات في القناة الصفراوية المشتركة. يجب استخدام الحكم السريري، خاصة عند المريض المصاب باليرقان.", "words": {}, "isTitle": false, "isSubTitle": false}]}, {"content": [{"type": "image", "src": "images/img_47f44808.jpg"}]}];
+        let currentIndex = 0;
+
+        function renderPage() {
+            try {
+                const container = document.getElementById('contentArea');
+                let html = '';
+                
+                pages.forEach((pageData, pageIndex) => {
+                    let activeClass = pageIndex === currentIndex ? 'active' : '';
+                    html += `<div class="slide-page ${activeClass}" id="page-${pageIndex}"><div class="slide-content-wrapper">`;
+                    
+                    pageData.content.forEach((item, idx) => {
+                        if (item.type === 'image') {
+                            html += `<div class="lecture-image-container"><img src="${item.src}" class="lecture-image"></div>`;
+                        } else {
+                            let cssClass = "english-paragraph";
+                            if (item.isTitle) cssClass = "title-text";
+                            if (item.isSubTitle) cssClass = "sub-title";
+
+                            let formattedBlock = '';
+                            let actualLines = item.text.split('\n');
+                            let localDict = item.words || {};
+                            
+                            actualLines.forEach(line => {
+                                let interactiveText = '';
+                                let words = line.split(' ');
+                                words.forEach(word => {
+                                    let clean = word.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                                    if (clean && /[a-z]/i.test(clean)) {
+                                        let safeWord = word.replace(/'/g, "\'").replace(/"/g, "&quot;");
+                                        let trans = localDict[clean] || fallbackDict[clean] || dictionary[clean] || "";
+                                        let transAttr = trans ? `data-trans="${trans}"` : '';
+                                        interactiveText += `<span class="interactive-word" data-clean="${clean}" ${transAttr} onclick="showWordMeaning('${clean}', '${safeWord}', this)">${word}</span> `;
+                                    } else {
+                                        interactiveText += `${word} `; 
+                                    }
+                                });
+                                formattedBlock += `<div>${interactiveText}</div>`;
+                            });
+
+                            let transFormatted = (item.trans || "").replace(/\n/g, '<br>');
+
+                            html += `
+                                <div class="text-block">
+                                    <div class="${cssClass}">
+                                        ${formattedBlock}
+                                    </div>
+                                    <button class="toggle-trans-btn" onclick="toggleTranslation('trans-${pageIndex}-${idx}')">
+                                        إظهار الترجمة &#11015;
+                                    </button>
+                                    <div id="trans-${pageIndex}-${idx}" class="inline-translation">
+                                        <strong style="color:#0056b3;">الترجمة الطبية:</strong><br>${transFormatted}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                    html += `</div></div>`;
+                });
+
+                container.innerHTML = html;
+                updateControls();
+                
+                fetchAllWordsTranslation();
+
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        // ================= نظام الطباعة الذكي (انتظار الصور + الكبس الدقيق) =================
+        function printLecture() {
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري تجهيز الصور والملزمة...";
+            
+            const slides = document.querySelectorAll('.slide-page');
+            
+            // 1. فتح وعرض كل السلايدات أولاً حتى المتصفح يبدأ يحمل صورها
+            slides.forEach(slide => {
+                slide.style.display = 'block'; 
+                slide.classList.add('active'); 
+            });
+
+            // 2. مراقبة الصور والتأكد من تحميلها بالكامل قبل الكبس والطباعة
+            let images = Array.from(document.images);
+            let promises = images.map(img => {
+                if (img.complete) return Promise.resolve();
+                return new Promise(resolve => {
+                    img.onload = resolve;
+                    img.onerror = resolve; // نكمل حتى لو فشلت الصورة حتى لا يعلق
+                });
+            });
+
+            // 3. بعد تحميل الصور وتمددها بحجمها الحقيقي، نقوم بالكبس
+            Promise.all(promises).then(() => {
+                printBtn.innerHTML = "⏳ جاري ترتيب الصفحات...";
+                
+                slides.forEach(slide => {
+                    const wrapper = slide.querySelector('.slide-content-wrapper');
+                    if (wrapper) {
+                        wrapper.style.zoom = 1; 
+                        let scrollH = wrapper.scrollHeight;
+                        let targetH = 1000; // حجم ورقة A4 التقديري (مع الهوامش)
+                        
+                        // كبس السلايد إذا كان طويلاً جداً
+                        if (scrollH > targetH) {
+                            wrapper.style.zoom = targetH / scrollH; 
+                        }
+                    }
+                });
+
+                // 4. إعطاء المتصفح لحظة لتطبيق الكبس ثم فتح نافذة الطباعة
+                setTimeout(() => {
+                    printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+                    window.print();
+
+                    // 5. إرجاع الموقع لسلايد واحد بعد الإغلاق
+                    setTimeout(() => {
+                        slides.forEach((slide) => {
+                            slide.style.display = '';
+                            const wrapper = slide.querySelector('.slide-content-wrapper');
+                            if(wrapper) wrapper.style.zoom = 1;
+                        });
+                        renderPage();
+                    }, 1000);
+                }, 500);
+            });
+        }
+
+        // ================= دالة الجلب الشامل لترجمة الكلمات =================
+        async function fetchAllWordsTranslation() {
+            const spans = document.querySelectorAll('.interactive-word');
+            let missingWords = new Set();
+            
+            spans.forEach(span => {
+                let clean = span.getAttribute('data-clean');
+                if (clean && !span.getAttribute('data-trans')) {
+                    missingWords.add(clean);
+                }
+            });
+
+            let wordsArray = Array.from(missingWords);
+            if (wordsArray.length === 0) return;
+
+            const printBtn = document.getElementById('mainPrintBtn');
+            printBtn.innerHTML = "⏳ جاري استخراج الكلمات للـ PDF...";
+            printBtn.style.background = "#ff9800";
+
+            let chunkSize = 40;
+            for (let i = 0; i < wordsArray.length; i += chunkSize) {
+                let chunk = wordsArray.slice(i, i + chunkSize);
+                let query = chunk.join('\n');
+                try {
+                    let res = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=' + encodeURIComponent(query));
+                    let data = await res.json();
+                    
+                    let translatedLines = [];
+                    data[0].forEach(item => {
+                        if (item[0]) {
+                            translatedLines.push(item[0].replace(/[^\u0600-\u06FF\s]/g, '').trim());
+                        }
+                    });
+
+                    chunk.forEach((word, idx) => {
+                        let trans = translatedLines[idx] || word;
+                        if(!trans) trans = word;
+                        dictionary[word] = trans;
+                        document.querySelectorAll(`span[data-clean="${word}"]`).forEach(el => {
+                            el.setAttribute('data-trans', trans);
+                        });
+                    });
+                } catch(e) { console.error(e); }
+            }
+            
+            printBtn.innerHTML = "🖨️ حفظ كـ PDF";
+            printBtn.style.background = "#28a745";
+        }
+
+        function updateControls() {
+            document.getElementById('pageIndicator').innerText = (currentIndex + 1) + " / " + pages.length;
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
+            document.getElementById('nextBtn').disabled = currentIndex === pages.length - 1;
+        }
+
+        function changePage(dir) {
+            document.getElementById(`page-${currentIndex}`).classList.remove('active');
+            currentIndex += dir;
+            document.getElementById(`page-${currentIndex}`).classList.add('active');
+            updateControls();
+            window.scrollTo(0,0);
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        let currentWordForAudio = "";
+
+        async function showWordMeaning(cleanWord, originalWord, element) {
+            currentWordForAudio = originalWord.replace(/[^a-zA-Z]/g, '');
+            const enSpan = document.getElementById('swEnglish');
+            const arSpan = document.getElementById('swArabic');
+            
+            enSpan.innerText = currentWordForAudio;
+            const overlay = document.getElementById('sheetOverlay');
+            overlay.classList.add('active');
+
+            if (element && element.getAttribute('data-trans')) {
+                arSpan.innerText = element.getAttribute('data-trans');
+            } else {
+                arSpan.innerText = fallbackDict[cleanWord] || "جاري الترجمة...";
+            }
+        }
+
+        function playAudio() {
+            if (currentWordForAudio) {
+                const utterance = new SpeechSynthesisUtterance(currentWordForAudio);
+                utterance.lang = 'en-US'; 
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function closeSheet(e) {
+            if (e.target.id === 'sheetOverlay') {
+                const overlay = document.getElementById('sheetOverlay');
+                overlay.classList.remove('active');
+            }
+        }
+
+        renderPage();
+
+    </script>
+</body>
+</html>
